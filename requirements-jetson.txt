@@ -1,0 +1,38 @@
+# Jetson Orin NX - Compatible Dependencies
+# Use this file on Jetson instead of requirements.txt
+# Python 3.10.12 on JetPack 6.x
+
+# Core AI/ML Components
+# NOTE: PyTorch comes pre-installed with JetPack - DO NOT REINSTALL
+# torch is already available via NVIDIA's Jetson installation
+openai-whisper>=20231117  # Speech-to-text
+ollama>=0.1.6  # Local LLM client
+
+# Text-to-Speech
+# TTS has many dependencies - install carefully
+# NOTE: May need to skip for Phase 1, use simpler TTS instead
+# TTS>=0.21.0  # Coqui TTS (uncomment when ready for Phase 2)
+
+# Wake Word Detection (Phase 2)
+# pvporcupine==3.0.0  # Uncomment when implementing wake word
+
+# Audio Processing
+pyaudio>=0.2.11  # Audio I/O
+soundfile>=0.12.1  # Audio file handling
+# numpy - will be satisfied by PyTorch/Whisper dependencies
+
+# System & Monitoring
+psutil>=5.9.0  # System resource monitoring
+python-dotenv>=1.0.0  # Environment variable management
+
+# Logging & Metrics (optional)
+prometheus-client>=0.19.0  # Metrics export
+
+# Utilities
+requests>=2.31.0  # HTTP client for MCP
+pydantic>=2.0.0  # Data validation
+
+# Development & Testing (optional for Jetson)
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# black>=23.0.0
