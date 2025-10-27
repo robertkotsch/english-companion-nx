@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/*.log
+*.log
+
+# Data
+data/conversations.jsonl
+data/conversations.db
+data/backups/
+
+# Models (download on Jetson)
+models/*.pt
+models/*.bin
+models/*.pth
+models/*.gguf
+
+# System
+.DS_Store
+Thumbs.db
+
+# Temporary
+tmp/
+temp/
+*.tmp
+/tmp/companion-audio/
