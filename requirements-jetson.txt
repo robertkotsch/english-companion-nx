@@ -1,5 +1,5 @@
 # Jetson Orin NX - Compatible Dependencies
-# Use this file on Jetson instead of requirements.txt
+# Use this file on Jetson instead of requirements-jetson.txt
 # Python 3.10.12 on JetPack 6.x
 
 # Core AI/ML Components

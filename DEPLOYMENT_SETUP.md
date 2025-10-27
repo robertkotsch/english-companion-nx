@@ -91,7 +91,7 @@ source .venv/bin/activate
 pip install --upgrade pip
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 ```
 
 #### 2.6 Configure Environment
@@ -155,7 +155,7 @@ make deploy-update
 cd ~/apps/english-companion-nx
 git pull origin main
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 systemctl --user restart english-companion-nx
 ```
 
@@ -194,7 +194,7 @@ make deploy-rollback
 - Source code (`.py` files)
 - Documentation (`.md` files)
 - Configuration templates (`.env.example`)
-- Requirements (`requirements.txt`)
+- Requirements (`requirements-jetson.txt`)
 - Scripts (`.sh`, `Makefile`)
 
 ### ❌ Files to NEVER Commit
@@ -280,7 +280,7 @@ git push origin main
 - [ ] Code tested locally (if possible)
 - [ ] Tests pass (`pytest`)
 - [ ] No `.env` in commit
-- [ ] `requirements.txt` updated if dependencies changed
+- [ ] `requirements-jetson.txt` updated if dependencies changed
 - [ ] Commit message is descriptive
 - [ ] Code documented
 

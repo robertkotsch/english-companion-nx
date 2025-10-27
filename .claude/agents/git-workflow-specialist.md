@@ -54,7 +54,7 @@ English Companion NX project-specific considerations:
 - **Conversation logs**: NEVER commit - contain user data (conversations.jsonl, *.db)
 - **Audio files**: NEVER commit - use tmpfs (/tmp/companion-audio/)
 - **.env files**: NEVER commit - use .env.example template instead
-- **Large dependencies**: Manage via requirements.txt, not direct commits
+- **Large dependencies**: Manage via requirements-jetson.txt, not direct commits
 - **Deployment**: Changes pushed to GitHub, Jetson pulls via deploy.sh
 - **SSD protection**: Avoid unnecessary file operations (impacts Jetson SSD life)
 - **Rollback safety**: Always test commits can be safely rolled back on Jetson

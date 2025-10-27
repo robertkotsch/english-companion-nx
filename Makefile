@@ -13,7 +13,7 @@ help:
 deploy-update:
 	@echo "🚀 Deploying updates from GitHub..."
 	git pull origin main
-	.venv/bin/pip install -q -r requirements.txt
+	.venv/bin/pip install -q -r requirements-jetson.txt
 	systemctl --user restart english-companion-nx
 	@echo "✅ Deployment complete!"
 

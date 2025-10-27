@@ -134,7 +134,7 @@ english-companion-nx/
 │   └── emergency_shutdown.py     # Safety procedures
 ├── logs/                         # Application logs (rotated)
 ├── .env                          # Environment config
-├── requirements.txt              # Python dependencies
+├── requirements-jetson.txt              # Python dependencies
 ├── CLAUDE.md                     # This file
 └── README.md                     # Project documentation
 ```
@@ -259,7 +259,7 @@ cd english-companion-nx
 # Setup environment
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 
 # Configure
 cp .env.example .env
@@ -283,7 +283,7 @@ git push origin main
 cd ~/apps/english-companion-nx
 git pull origin main
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 systemctl --user restart english-companion-nx
 
 # Or use automation

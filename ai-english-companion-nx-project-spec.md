@@ -2281,7 +2281,7 @@ Week 11+:   Phase 6 - Enhancement
    │   └── user_profile.json
    ├── models/
    │   └── (downloaded models)
-   ├── requirements.txt
+   ├── requirements-jetson.txt
    └── README.md
    ```
 

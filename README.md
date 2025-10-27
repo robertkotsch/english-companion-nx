@@ -77,7 +77,7 @@ This project includes comprehensive documentation based on production-tested pat
    # Setup environment
    python3 -m venv .venv
    source .venv/bin/activate
-   pip install -r requirements.txt
+   pip install -r requirements-jetson.txt
    
    # Configure
    cp .env.example .env
@@ -199,7 +199,7 @@ make deploy-update
 # Or manually:
 git pull origin main
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 systemctl --user restart english-companion-nx
 
 # Check status
@@ -341,7 +341,7 @@ If you add monitoring in Phase 4+:
 2. Test before pushing
 3. Use meaningful commit messages
 4. Document new features
-5. Update requirements.txt
+5. Update requirements-jetson.txt
 
 ### Code Standards
 

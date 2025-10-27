@@ -24,7 +24,7 @@ cd ~/apps/english-companion-nx
 make deploy-update
 
 # Or manual
-git pull && source .venv/bin/activate && pip install -r requirements.txt
+git pull && source .venv/bin/activate && pip install -r requirements-jetson.txt
 systemctl --user restart english-companion-nx
 ```
 

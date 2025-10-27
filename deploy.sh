@@ -12,7 +12,7 @@ git pull origin main
 # Update dependencies
 echo "📦 Updating dependencies..."
 source .venv/bin/activate
-pip install -q -r requirements.txt
+pip install -q -r requirements-jetson.txt
 
 # Restart service
 echo "🔄 Restarting service..."

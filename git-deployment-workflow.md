@@ -93,7 +93,7 @@ EOF
 
 # Create essential files
 touch README.md
-touch requirements.txt
+touch requirements-jetson.txt
 touch .env.example
 
 # Initial commit
@@ -177,7 +177,7 @@ python3 -m venv .venv
 # Activate and install dependencies
 source .venv/bin/activate
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 
 # Create .env from template
 cp .env.example .env
@@ -228,9 +228,9 @@ cd ~/apps/english-companion-nx
 # Pull latest changes
 git pull origin main
 
-# Update dependencies (if requirements.txt changed)
+# Update dependencies (if requirements-jetson.txt changed)
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 
 # Restart service
 systemctl --user restart english-companion-nx
@@ -260,7 +260,7 @@ git pull origin main
 # Update dependencies
 echo "📦 Updating dependencies..."
 source .venv/bin/activate
-pip install -q -r requirements.txt
+pip install -q -r requirements-jetson.txt
 
 # Restart service
 echo "🔄 Restarting service..."
@@ -298,7 +298,7 @@ Add to your `Makefile` on Jetson:
 deploy-update:
 	@echo "🚀 Deploying updates from GitHub..."
 	git pull origin main
-	.venv/bin/pip install -q -r requirements.txt
+	.venv/bin/pip install -q -r requirements-jetson.txt
 	systemctl --user restart english-companion-nx
 	@echo "✅ Deployment complete!"
 
@@ -505,7 +505,7 @@ systemctl --user restart english-companion-nx
 - [ ] Tests pass (`pytest`)
 - [ ] No sensitive data in code
 - [ ] `.env` not committed
-- [ ] `requirements.txt` updated
+- [ ] `requirements-jetson.txt` updated
 - [ ] Commit message descriptive
 - [ ] Changes documented in code
 

@@ -446,7 +446,7 @@ source .venv/bin/activate
 pip install --upgrade pip
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 ```
 
 ### Environment Files
@@ -737,7 +737,7 @@ cd project-name
 cd ~/apps/project-name
 git pull
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 systemctl --user restart myapp
 ```
 
@@ -748,7 +748,7 @@ deploy-update:
 	@echo "Pulling latest code..."
 	git pull origin main
 	@echo "Installing dependencies..."
-	.venv/bin/pip install -r requirements.txt
+	.venv/bin/pip install -r requirements-jetson.txt
 	@echo "Restarting service..."
 	systemctl --user restart myapp
 	@echo "Deployment complete!"
@@ -957,7 +957,7 @@ source .venv/bin/activate
 which python  # Should show .venv path
 
 # Reinstall dependencies
-pip install -r requirements.txt
+pip install -r requirements-jetson.txt
 ```
 
 **Problem: Permission denied on venv**
@@ -1160,7 +1160,7 @@ make deploy-update                 # Automated update
 
 # Python environment
 source .venv/bin/activate          # Activate venv
-pip install -r requirements.txt    # Install deps
+pip install -r requirements-jetson.txt    # Install deps
 ```
 
 ### Port Checklist
