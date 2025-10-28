@@ -37,7 +37,8 @@ def check_device():
                 # Extract card number (e.g., "card 2:")
                 card_num = line.split('card ')[1].split(':')[0]
                 print(f"   Card: {card_num}")
-                return f"hw:{card_num},0"
+                # Use plughw for better compatibility (handles format conversion)
+                return f"plughw:{card_num},0"
     else:
         print("❌ PowerConf S3 not found!")
         print("\nAvailable devices:")
