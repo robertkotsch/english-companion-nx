@@ -47,7 +47,14 @@ This project includes comprehensive documentation based on production-tested pat
    - Migration paths
    - **Understand architecture decisions**
 
-6. **[JETSON_PECULIARITIES.md](./JETSON_PECULIARITIES.md)** (Lessons learned)
+6. **[RAG Integration Guide](./RAG_INTEGRATION_GUIDE.md)** (Phase 4-5)
+   - Adding semantic memory with Qdrant
+   - Long-term conversation context
+   - Implementation details
+   - Resource impact analysis
+   - **Future enhancement**
+
+7. **[JETSON_PECULIARITIES.md](./JETSON_PECULIARITIES.md)** (Lessons learned)
    - Production quirks and gotchas
    - From Domain Radar deployment
    - ARM64-specific issues
@@ -163,6 +170,7 @@ Safety margin:       1.0 GB
 - [ ] Grammar correction (background)
 - [ ] Vocabulary tracking
 - [ ] Progress metrics
+- [ ] **RAG with Qdrant** (semantic memory)
 
 ### Phase 5: Polish & Advanced ⏳
 - [ ] Voice cloning option

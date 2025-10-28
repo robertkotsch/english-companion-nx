@@ -134,7 +134,7 @@ english-companion-nx/
 │   └── emergency_shutdown.py     # Safety procedures
 ├── logs/                         # Application logs (rotated)
 ├── .env                          # Environment config
-├── requirements-jetson.txt              # Python dependencies
+├── requirements-jetson.txt       # Python dependencies
 ├── CLAUDE.md                     # This file
 └── README.md                     # Project documentation
 ```

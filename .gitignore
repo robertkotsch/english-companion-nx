@@ -41,3 +41,6 @@ tmp/
 temp/
 *.tmp
 /tmp/companion-audio/
+
+
+domain-radar-nx.code-workspace
