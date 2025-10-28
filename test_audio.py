@@ -107,19 +107,33 @@ def transcribe_audio():
 
     try:
         import whisper
-        print("📝 Loading Whisper model (base)...")
+        import torch
+
+        # Check GPU availability
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"📝 Loading Whisper model (base) on {device.upper()}...")
+        if device == "cuda":
+            print(f"   GPU: {torch.cuda.get_device_name(0)}")
         print("   (This will take a moment on first run)\n")
 
-        model = whisper.load_model("base")
+        # Load model on GPU
+        model = whisper.load_model("base", device=device)
 
         print("🤖 Transcribing your audio...")
-        result = model.transcribe(TEST_FILE)
+        start_time = time.time()
+
+        # Transcribe with FP16 on GPU for speed
+        result = model.transcribe(TEST_FILE, fp16=(device == "cuda"))
+
+        transcribe_time = time.time() - start_time
 
         print("\n" + "─"*60)
         print("TRANSCRIPTION:")
         print("─"*60)
         print(f"\"{result['text'].strip()}\"")
         print("─"*60)
+        print(f"\n⏱️  Transcription time: {transcribe_time:.2f}s")
+        print(f"🎯 Device used: {device.upper()}")
         print("\n✅ Transcription complete!")
 
         return True
