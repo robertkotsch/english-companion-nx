@@ -31,7 +31,7 @@ class Config:
     # Storage settings
     CONVERSATION_LOG = os.getenv(
         "CONVERSATION_LOG",
-        "/mnt/nvme/companion/conversations.jsonl"
+        str(Path.home() / "companion-data" / "conversations.jsonl")
     )
     CONVERSATION_BUFFER_INTERVAL = int(os.getenv("CONVERSATION_BUFFER_INTERVAL", "300"))
     CONVERSATION_CONTEXT_SIZE = int(os.getenv("CONVERSATION_CONTEXT_SIZE", "20"))
