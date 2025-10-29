@@ -86,7 +86,8 @@ class ConversationPrototype:
 
         # Start recording BEFORE the beep to avoid buffer lag
         # Record extra time to capture the beep + user speech
-        total_duration = duration + 1  # Extra second for beep and buffer warmup
+        buffer_time = 1.5  # Time for buffer warmup + beep + user reaction
+        total_duration = duration + buffer_time
 
         print("🔴 RECORDING...")
 
@@ -105,8 +106,8 @@ class ConversationPrototype:
             stderr=subprocess.DEVNULL
         )
 
-        # Wait a moment for recording to initialize
-        time.sleep(0.2)
+        # Wait for audio buffer to initialize properly
+        time.sleep(0.5)
 
         # Play beep DURING recording
         print("🎵 BEEP - Start speaking NOW!")
@@ -118,8 +119,9 @@ class ConversationPrototype:
         if recording_process.returncode != 0:
             raise Exception("Recording failed")
 
-        # Trim the first second (beep + buffer warmup) from the recording
-        trimmed_file = self._trim_audio_start(temp_file, trim_seconds=1.0)
+        # Trim the warmup period (buffer + beep, but NOT user speech)
+        # Buffer warmup (0.5s) + beep (0.2s) = 0.7s trim
+        trimmed_file = self._trim_audio_start(temp_file, trim_seconds=0.7)
 
         print("✅ Recording complete")
         return trimmed_file
