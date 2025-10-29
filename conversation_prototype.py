@@ -127,13 +127,30 @@ class ConversationPrototype:
     def _play_beep(self):
         """Play a short beep sound to indicate recording start"""
         try:
-            # Generate a short beep using speaker-test
+            # Generate a short beep tone (800Hz, 0.2 seconds)
+            beep_file = os.path.join(Config.AUDIO_TEMP_DIR, "beep.wav")
+
+            # Create beep tone using numpy
+            duration = 0.2  # seconds
+            frequency = 800  # Hz
+            sample_rate = 22050
+
+            t = np.linspace(0, duration, int(sample_rate * duration))
+            beep = np.sin(2 * np.pi * frequency * t) * 0.3  # 30% volume
+
+            # Save beep
+            sf.write(beep_file, beep, sample_rate)
+
+            # Play through PulseAudio (same device as TTS)
             subprocess.run(
-                ["speaker-test", "-t", "sine", "-f", "800", "-l", "1"],
+                ["paplay", f"--device={Config.AUDIO_OUTPUT_DEVICE}", beep_file],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                timeout=0.3
+                timeout=1.0
             )
+
+            # Clean up
+            os.remove(beep_file)
         except Exception:
             # If beep fails, just continue (not critical)
             pass
