@@ -14,6 +14,7 @@ import os
 import time
 import tempfile
 import subprocess
+import glob
 from uuid import uuid4
 
 import whisper
@@ -34,6 +35,9 @@ class ConversationPrototype:
         print("🚀 English Companion NX - Conversation Prototype")
         print("=" * 60)
 
+        # Clean up any previous instances
+        self._cleanup_previous_instances()
+
         # Check GPU availability
         self.device = "cuda" if torch.cuda.is_available() and Config.USE_GPU else "cpu"
         print(f"🖥️  Device: {self.device.upper()}")
@@ -53,8 +57,43 @@ class ConversationPrototype:
         print("   Initializing conversation manager...")
         self.conversation = ConversationManager()
 
+        # Track active recording process
+        self.active_recording = None
+
         print("\n✅ All systems ready!")
         print("=" * 60)
+
+    def _cleanup_previous_instances(self):
+        """Kill any existing arecord processes and clean temp files"""
+        try:
+            # Kill any existing arecord processes
+            subprocess.run(
+                ["pkill", "-9", "arecord"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+
+            # Wait a moment for processes to die
+            time.sleep(0.2)
+
+            # Clean up any temp audio files
+            temp_pattern = os.path.join(Config.AUDIO_TEMP_DIR, "recording_*.wav")
+            beep_file = os.path.join(Config.AUDIO_TEMP_DIR, "beep.wav")
+
+            for temp_file in glob.glob(temp_pattern):
+                try:
+                    os.remove(temp_file)
+                except Exception:
+                    pass
+
+            try:
+                os.remove(beep_file)
+            except Exception:
+                pass
+
+            print("🧹 Cleaned up previous instances")
+        except Exception as e:
+            print(f"⚠️  Cleanup warning: {e}")
 
     def record_audio(self, duration: int = None) -> str:
         """
@@ -91,6 +130,13 @@ class ConversationPrototype:
 
         print("🔴 RECORDING...")
 
+        # Kill any existing recording processes
+        if self.active_recording is not None:
+            try:
+                self.active_recording.kill()
+            except Exception:
+                pass
+
         # Start recording in background
         recording_process = subprocess.Popen(
             [
@@ -103,8 +149,10 @@ class ConversationPrototype:
                 temp_file
             ],
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.PIPE
         )
+
+        self.active_recording = recording_process
 
         # Wait for audio buffer to initialize properly
         time.sleep(0.5)
@@ -116,23 +164,32 @@ class ConversationPrototype:
         except Exception as e:
             print(f"⚠️  Beep failed: {e}")
 
+        # Ensure beep finishes before recording ends
+        time.sleep(0.3)
+
         # Wait for recording to complete
         try:
-            recording_process.wait(timeout=total_duration + 5)
+            stdout, stderr = recording_process.communicate(timeout=total_duration + 5)
         except subprocess.TimeoutExpired:
             recording_process.kill()
+            self.active_recording = None
             raise Exception("Recording timeout")
 
+        self.active_recording = None
+
         if recording_process.returncode != 0:
+            # Get error details from stderr
+            error_msg = stderr.decode('utf-8', errors='ignore').strip() if stderr else "Unknown error"
+
             # Try to get error details
             try:
                 with open(temp_file, 'rb') as f:
                     if f.read(1):  # File has some content
-                        print("⚠️  Recording process exited with error but file exists, continuing...")
+                        print(f"⚠️  Recording process exited with error but file exists, continuing... (Error: {error_msg})")
                     else:
-                        raise Exception(f"Recording failed with return code {recording_process.returncode}")
+                        raise Exception(f"Recording failed: {error_msg} (return code {recording_process.returncode})")
             except FileNotFoundError:
-                raise Exception(f"Recording failed: no output file created (return code {recording_process.returncode})")
+                raise Exception(f"Recording failed: no output file created - {error_msg} (return code {recording_process.returncode})")
 
         # Trim the warmup period (buffer + beep, but NOT user speech)
         # Buffer warmup (0.5s) + beep (0.2s) = 0.7s trim
