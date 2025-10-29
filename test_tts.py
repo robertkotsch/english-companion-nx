@@ -8,6 +8,8 @@ import time
 import subprocess
 import os
 import tempfile
+import numpy as np
+import soundfile as sf
 
 def test_coqui_tts():
     """Test Coqui TTS with VITS model"""
@@ -51,9 +53,26 @@ def test_coqui_tts():
         synth_time = time.time() - start_time
         print(f"✅ Synthesis complete: {synth_time:.2f}s")
 
+        # Add silence padding to prevent audio clipping at start
+        print("🔧 Adding silence padding to prevent clipping...")
+        audio_data, sample_rate = sf.read(temp_file.name)
+
+        # Add 0.5 seconds of silence at the beginning
+        silence_duration = 0.5  # seconds
+        silence_samples = int(silence_duration * sample_rate)
+        silence = np.zeros((silence_samples, audio_data.shape[1] if len(audio_data.shape) > 1 else 1))
+
+        # Reshape if mono
+        if len(audio_data.shape) == 1:
+            audio_data = audio_data.reshape(-1, 1)
+            silence = silence.reshape(-1, 1)
+
+        padded_audio = np.vstack([silence, audio_data])
+        sf.write(temp_file.name, padded_audio, sample_rate)
+
         # Check file size
         file_size = os.path.getsize(temp_file.name)
-        print(f"📁 Audio file size: {file_size / 1024:.1f} KB")
+        print(f"📁 Audio file size: {file_size / 1024:.1f} KB (with padding)")
 
         # Play through Anker PowerConf S3 (via PulseAudio)
         print("\n🔊 Playing through Anker PowerConf S3...")
