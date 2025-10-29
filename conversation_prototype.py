@@ -74,7 +74,19 @@ class ConversationPrototype:
             f"recording_{uuid4()}.wav"
         )
 
-        print(f"\n🎤 Recording for {duration} seconds...")
+        # Countdown to give user time to prepare
+        print("\n⏱️  Get ready to speak...")
+        time.sleep(0.8)
+        print("3...")
+        time.sleep(0.6)
+        print("2...")
+        time.sleep(0.6)
+        print("1...")
+        time.sleep(0.6)
+
+        # Play beep to indicate recording start
+        print("🔴 RECORDING NOW!")
+        self._play_beep()
 
         # Record using arecord (ALSA)
         result = subprocess.run(
@@ -96,6 +108,20 @@ class ConversationPrototype:
 
         print("✅ Recording complete")
         return temp_file
+
+    def _play_beep(self):
+        """Play a short beep sound to indicate recording start"""
+        try:
+            # Generate a short beep using speaker-test
+            subprocess.run(
+                ["speaker-test", "-t", "sine", "-f", "800", "-l", "1"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=0.3
+            )
+        except Exception:
+            # If beep fails, just continue (not critical)
+            pass
 
     def transcribe_audio(self, audio_file: str) -> str:
         """
