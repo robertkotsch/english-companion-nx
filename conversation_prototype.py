@@ -77,11 +77,10 @@ class ConversationPrototype:
         print(f"\n🎤 Recording for {duration} seconds...")
 
         # Record using arecord (ALSA)
-        # Note: Using default device, which should be Anker PowerConf S3
         result = subprocess.run(
             [
                 "arecord",
-                "-D", "plughw:2,0",  # Anker PowerConf S3
+                "-D", Config.AUDIO_INPUT_DEVICE,
                 "-f", "S16_LE",
                 "-c", "1",
                 "-r", str(Config.AUDIO_SAMPLE_RATE),

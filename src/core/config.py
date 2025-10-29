@@ -22,7 +22,10 @@ class Config:
     AUDIO_SAMPLE_RATE = int(os.getenv("AUDIO_SAMPLE_RATE", "16000"))
     AUDIO_RECORD_SECONDS = int(os.getenv("AUDIO_RECORD_SECONDS", "5"))
 
-    # PulseAudio device for Anker PowerConf S3
+    # ALSA input device for Anker PowerConf S3
+    AUDIO_INPUT_DEVICE = os.getenv("AUDIO_INPUT_DEVICE", "plughw:0,0")
+
+    # PulseAudio output device for Anker PowerConf S3
     AUDIO_OUTPUT_DEVICE = os.getenv(
         "AUDIO_OUTPUT_DEVICE",
         "alsa_output.usb-Anker_PowerConf_S3_A3321-DEV-SN1-01.analog-stereo"
