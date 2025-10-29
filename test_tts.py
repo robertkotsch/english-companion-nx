@@ -55,10 +55,10 @@ def test_coqui_tts():
         file_size = os.path.getsize(temp_file.name)
         print(f"📁 Audio file size: {file_size / 1024:.1f} KB")
 
-        # Play through Anker PowerConf S3
+        # Play through Anker PowerConf S3 (via PulseAudio)
         print("\n🔊 Playing through Anker PowerConf S3...")
         result = subprocess.run(
-            ['aplay', '-D', 'plughw:2,0', temp_file.name],
+            ['paplay', '--device=alsa_output.usb-Anker_PowerConf_S3_A3321-DEV-SN1-01.analog-stereo', temp_file.name],
             capture_output=True,
             text=True
         )
