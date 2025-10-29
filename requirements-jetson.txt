@@ -10,8 +10,7 @@ ollama>=0.1.6  # Local LLM client
 
 # Text-to-Speech
 # TTS has many dependencies - install carefully
-# NOTE: May need to skip for Phase 1, use simpler TTS instead
-# TTS>=0.21.0  # Coqui TTS (uncomment when ready for Phase 2)
+TTS>=0.21.0  # Coqui TTS (VITS model for high-quality speech)
 
 # Wake Word Detection (Phase 2)
 # pvporcupine==3.0.0  # Uncomment when implementing wake word
