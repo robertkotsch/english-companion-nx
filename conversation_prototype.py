@@ -109,15 +109,30 @@ class ConversationPrototype:
         # Wait for audio buffer to initialize properly
         time.sleep(0.5)
 
-        # Play beep DURING recording
+        # Play beep DURING recording (non-blocking)
         print("🎵 BEEP - Start speaking NOW!")
-        self._play_beep()
+        try:
+            self._play_beep()
+        except Exception as e:
+            print(f"⚠️  Beep failed: {e}")
 
         # Wait for recording to complete
-        recording_process.wait()
+        try:
+            recording_process.wait(timeout=total_duration + 5)
+        except subprocess.TimeoutExpired:
+            recording_process.kill()
+            raise Exception("Recording timeout")
 
         if recording_process.returncode != 0:
-            raise Exception("Recording failed")
+            # Try to get error details
+            try:
+                with open(temp_file, 'rb') as f:
+                    if f.read(1):  # File has some content
+                        print("⚠️  Recording process exited with error but file exists, continuing...")
+                    else:
+                        raise Exception(f"Recording failed with return code {recording_process.returncode}")
+            except FileNotFoundError:
+                raise Exception(f"Recording failed: no output file created (return code {recording_process.returncode})")
 
         # Trim the warmup period (buffer + beep, but NOT user speech)
         # Buffer warmup (0.5s) + beep (0.2s) = 0.7s trim
