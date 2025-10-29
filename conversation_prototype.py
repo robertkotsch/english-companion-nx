@@ -113,22 +113,10 @@ class ConversationPrototype:
             f"recording_{uuid4()}.wav"
         )
 
-        # Countdown
-        print("\n⏱️  Get ready to speak...")
-        time.sleep(0.8)
-        print("3...")
-        time.sleep(0.6)
-        print("2...")
-        time.sleep(0.6)
-        print("1...")
-        time.sleep(0.4)
-
         # Start recording BEFORE the beep to avoid buffer lag
         # Record extra time to capture the beep + user speech
         buffer_time = 2  # Time for buffer warmup + beep + user reaction (must be integer)
         total_duration = duration + buffer_time
-
-        print("🔴 RECORDING...")
 
         # Kill any existing recording processes
         if self.active_recording is not None:
@@ -158,15 +146,15 @@ class ConversationPrototype:
         # Wait for audio buffer to initialize properly
         time.sleep(0.5)
 
-        # Play beep DURING recording (non-blocking)
-        print("🎵 BEEP - Start speaking NOW!")
+        # Play beep to signal recording start
+        print("\n🔴 [BEEP] Start speaking now...")
         try:
             self._play_beep()
         except Exception as e:
             print(f"⚠️  Beep failed: {e}")
 
         # Ensure beep finishes before recording ends
-        time.sleep(0.3)
+        time.sleep(0.4)
 
         # Wait for recording to complete
         try:
@@ -200,18 +188,18 @@ class ConversationPrototype:
         return trimmed_file
 
     def _play_beep(self):
-        """Play a short beep sound to indicate recording start"""
+        """Play a prominent beep sound to indicate recording start"""
         try:
-            # Generate a short beep tone (800Hz, 0.2 seconds)
+            # Generate a prominent beep tone
             beep_file = os.path.join(Config.AUDIO_TEMP_DIR, "beep.wav")
 
             # Create beep tone using numpy
-            duration = 0.2  # seconds
-            frequency = 800  # Hz
+            duration = 0.3  # seconds (longer for prominence)
+            frequency = 700  # Hz (lower frequency is more noticeable)
             sample_rate = 22050
 
             t = np.linspace(0, duration, int(sample_rate * duration))
-            beep = np.sin(2 * np.pi * frequency * t) * 0.3  # 30% volume
+            beep = np.sin(2 * np.pi * frequency * t) * 0.7  # 70% volume (much louder)
 
             # Save beep
             sf.write(beep_file, beep, sample_rate)
