@@ -74,7 +74,7 @@ class ConversationPrototype:
             f"recording_{uuid4()}.wav"
         )
 
-        # Countdown to give user time to prepare
+        # Countdown
         print("\n⏱️  Get ready to speak...")
         time.sleep(0.8)
         print("3...")
@@ -82,32 +82,47 @@ class ConversationPrototype:
         print("2...")
         time.sleep(0.6)
         print("1...")
-        time.sleep(0.6)
+        time.sleep(0.4)
 
-        # Play beep to indicate recording start
-        print("🔴 RECORDING NOW!")
-        self._play_beep()
+        # Start recording BEFORE the beep to avoid buffer lag
+        # Record extra time to capture the beep + user speech
+        total_duration = duration + 1  # Extra second for beep and buffer warmup
 
-        # Record using arecord (ALSA)
-        result = subprocess.run(
+        print("🔴 RECORDING...")
+
+        # Start recording in background
+        recording_process = subprocess.Popen(
             [
                 "arecord",
                 "-D", Config.AUDIO_INPUT_DEVICE,
                 "-f", "S16_LE",
                 "-c", "1",
                 "-r", str(Config.AUDIO_SAMPLE_RATE),
-                "-d", str(duration),
+                "-d", str(total_duration),
                 temp_file
             ],
-            capture_output=True,
-            text=True
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
-        if result.returncode != 0:
-            raise Exception(f"Recording failed: {result.stderr}")
+        # Wait a moment for recording to initialize
+        time.sleep(0.2)
+
+        # Play beep DURING recording
+        print("🎵 BEEP - Start speaking NOW!")
+        self._play_beep()
+
+        # Wait for recording to complete
+        recording_process.wait()
+
+        if recording_process.returncode != 0:
+            raise Exception("Recording failed")
+
+        # Trim the first second (beep + buffer warmup) from the recording
+        trimmed_file = self._trim_audio_start(temp_file, trim_seconds=1.0)
 
         print("✅ Recording complete")
-        return temp_file
+        return trimmed_file
 
     def _play_beep(self):
         """Play a short beep sound to indicate recording start"""
@@ -122,6 +137,35 @@ class ConversationPrototype:
         except Exception:
             # If beep fails, just continue (not critical)
             pass
+
+    def _trim_audio_start(self, audio_file: str, trim_seconds: float) -> str:
+        """
+        Trim the beginning of an audio file
+
+        Args:
+            audio_file: Path to audio file
+            trim_seconds: Seconds to trim from start
+
+        Returns:
+            Path to trimmed audio file
+        """
+        # Read audio
+        audio_data, sample_rate = sf.read(audio_file)
+
+        # Calculate samples to trim
+        trim_samples = int(trim_seconds * sample_rate)
+
+        # Trim the audio
+        if trim_samples < len(audio_data):
+            trimmed_audio = audio_data[trim_samples:]
+        else:
+            # If trim is longer than audio, return silence
+            trimmed_audio = audio_data
+
+        # Save trimmed audio (overwrite original)
+        sf.write(audio_file, trimmed_audio, sample_rate)
+
+        return audio_file
 
     def transcribe_audio(self, audio_file: str) -> str:
         """
