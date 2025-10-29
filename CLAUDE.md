@@ -48,14 +48,19 @@ Qdrant             # If you add semantic conversation search
 
 ## Architecture Quick Reference
 
-### Technology Stack
-- **Runtime**: Native Python (systemd user service)
-- **Audio Hardware**: Anker PowerConf S3 (USB)
-- **Speech-to-Text**: Whisper Medium (local, GPU-accelerated)
-- **LLM**: Ollama with Llama 3.1 13B q4_0 (local, native)
-- **TTS**: Coqui VITS (local, high quality)
-- **Wake Word**: Porcupine (local, low-power)
-- **Content**: MCP integration (existing topic curation system)
+### Technology Stack (Current Implementation)
+- **Runtime**: Native Python (venv with --system-site-packages)
+- **Audio Hardware**: Anker PowerConf S3 card 0, device 0 (USB)
+  - Input: `plughw:0,0` (ALSA)
+  - Output: PulseAudio sink (alsa_output.usb-Anker_PowerConf_S3...)
+- **Speech-to-Text**: Whisper small (local, GPU-accelerated, ~1-2s)
+  - Uses system PyTorch 2.5.0 with CUDA 12.6
+- **LLM**: Ollama with llama3.2:3b (local, ~6-8s response)
+  - Running as system service on localhost:11434
+- **TTS**: Coqui VITS (local, GPU-accelerated, ~2.5s)
+  - Model: tts_models/en/ljspeech/vits
+- **Wake Word**: Not yet implemented (Phase 2)
+- **Content/MCP**: Not yet implemented (Phase 3)
 
 ### System Architecture
 
@@ -100,105 +105,130 @@ Qdrant             # If you add semantic conversation search
 └─────────────────────────────────────────┘
 ```
 
-## Essential File Structure
+## Current File Structure (Phase 1 Prototype)
 
 ```
 english-companion-nx/
 ├── src/
-│   ├── audio/
-│   │   ├── wake_word.py          # Porcupine integration
-│   │   ├── recorder.py           # Audio capture to tmpfs
-│   │   └── player.py             # Audio playback
-│   ├── speech/
-│   │   ├── transcription.py      # Whisper wrapper
-│   │   └── synthesis.py          # TTS wrapper
-│   ├── conversation/
-│   │   ├── manager.py            # Context management
-│   │   ├── llm_client.py         # Ollama integration
-│   │   ├── context.py            # Conversation history
-│   │   └── logger.py             # Buffered conversation logging
-│   ├── grammar/
-│   │   └── correction.py         # Background grammar analysis
-│   ├── mcp/
-│   │   └── client.py             # Topic integration (optional)
 │   ├── core/
-│   │   ├── model_manager.py      # Singleton model loader
-│   │   ├── memory_guard.py       # OOM prevention
-│   │   └── config.py             # Configuration
-│   └── main.py                   # Service entry point
-├── config/
-│   ├── system_prompt.txt         # LLM personality
-│   └── settings.yaml             # Configuration
-├── scripts/
-│   ├── health_check.sh           # Daily monitoring
-│   └── emergency_shutdown.py     # Safety procedures
-├── logs/                         # Application logs (rotated)
-├── .env                          # Environment config
-├── requirements-jetson.txt       # Python dependencies
-├── CLAUDE.md                     # This file
-└── README.md                     # Project documentation
+│   │   ├── config.py                 # ✅ Configuration loader (.env support)
+│   │   └── __init__.py
+│   └── conversation/
+│       ├── manager.py                # ✅ Context-aware conversation management
+│       ├── llm_client.py             # ✅ Ollama API wrapper
+│       └── __init__.py
+├── conversation_prototype.py         # ✅ Main entry point (interactive mode)
+├── test_audio.py                     # ✅ Audio hardware test script
+├── test_tts.py                       # ✅ TTS test script
+├── .env.example                      # Template configuration
+├── .env                              # Local configuration (gitignored)
+├── requirements-jetson.txt           # Jetson-specific dependencies
+├── deploy.sh                         # Quick deployment script
+├── Makefile                          # Deployment commands
+└── MD/                               # Documentation folder
+    ├── JETSON_MODELS.md              # Model testing results
+    ├── JETSON_SETUP.md               # Jetson-specific setup
+    └── ...
 ```
 
-**Data storage location (NVMe):**
+**Planned (not yet implemented):**
+- `src/audio/` - Wake word, recording, playback modules
+- `src/speech/` - Whisper and TTS wrappers
+- `src/grammar/` - Grammar correction
+- `src/mcp/` - Topic integration
+- `main.py` - Service entry point (systemd)
+- `scripts/` - Monitoring and maintenance scripts
+
+**Data storage location (Current):**
 ```
-/mnt/nvme/companion/
-├── conversations.jsonl           # Main conversation log (buffered writes)
-├── conversations.db              # Optional SQLite (Phase 4+)
-├── audio/                        # Optional saved recordings
-└── backups/                      # Periodic backups
+~/companion-data/
+└── conversations.jsonl           # Not yet implemented (Phase 1 TODO)
 ```
 
-**No heavy infrastructure needed:**
-- ❌ PostgreSQL (overkill for conversations)
-- ❌ Redis (no caching needed)
-- ❌ Qdrant (no vector search initially)
+**Temporary files (tmpfs):**
+```
+/tmp/companion-audio/
+├── recording_*.wav               # User speech (deleted after transcription)
+└── tts_*.wav                     # TTS output (deleted after playback)
+```
 
-**Keep it simple:** JSONL file with buffered writes is sufficient for Phase 1-3.
+**Note:** Conversation logging to JSONL is planned but not yet implemented.
 
 ## Critical System Files
 
-**MUST READ before modifications:**
+**Key files (implemented):**
 
-- `src/core/model_manager.py` - Singleton pattern, load-once strategy
-- `src/core/memory_guard.py` - Memory monitoring, OOM prevention
-- `src/conversation/manager.py` - Conversation buffering, context pruning
-- `src/audio/recorder.py` - tmpfs usage for temp audio
-- `main.py` - Service lifecycle, model loading
+- `conversation_prototype.py` - Main prototype entry point
+  - Loads models (Whisper, TTS) at startup (singleton pattern)
+  - Manages conversation loop (record → transcribe → LLM → TTS → play)
+  - Handles audio device cleanup on startup (kills leftover arecord processes)
+  - Audio recording: records to tmpfs, trims 1s warmup buffer, deletes after use
+  - TTS: adds 0.5s silence padding to prevent clipping
+
+- `src/conversation/manager.py` - Conversation context management
+  - Maintains conversation history with system prompt
+  - Prunes context to last N exchanges (default: 20)
+  - System prompt defines friendly English companion persona
+
+- `src/conversation/llm_client.py` - Ollama API wrapper
+  - HTTP requests to localhost:11434/api/chat
+  - Handles timeouts and error cases
+
+- `src/core/config.py` - Configuration loader
+  - Loads from .env file
+  - Creates required directories (tmpfs, data storage)
+  - Device configurations (audio input/output)
 
 **Configuration:**
-- `.env` - Environment variables (secure with chmod 600)
-- `config/system_prompt.txt` - LLM personality definition
-- `config/settings.yaml` - System parameters
+- `.env` - Environment variables (copy from .env.example)
+- `WHISPER_MODEL` - Model size (base/small/medium)
+- `OLLAMA_MODEL` - LLM model name (llama3.2:3b recommended)
+- `AUDIO_INPUT_DEVICE` - ALSA device (plughw:0,0)
+- `AUDIO_OUTPUT_DEVICE` - PulseAudio sink
 
 ## Data Flow (Critical Understanding)
 
-### Conversation Flow
+### Conversation Flow (Current Implementation)
 
 ```
-1. Wake Word Detected
-   └─> Audio buffer activated
-   
-2. User Speech Recorded
-   └─> Saved to /tmp/companion-audio/temp_<uuid>.wav
-   └─> Transcribed with Whisper (from tmpfs)
+1. User presses Enter
+   └─> Starts background recording process (arecord)
+   └─> Waits 0.5s for buffer initialization
+
+2. Beep plays (700Hz, 0.3s, 70% volume)
+   └─> Signals user to start speaking
+
+3. User Speech Recorded (5 seconds + 2s buffer)
+   └─> Saved to /tmp/companion-audio/recording_<uuid>.wav
+   └─> First 1.0s trimmed (removes buffer warmup + beep)
+   └─> Transcribed with Whisper small (GPU, FP16)
    └─> File deleted immediately (no SSD write!)
-   
-3. Conversation Processing
-   └─> Load conversation context (last N exchanges)
-   └─> Optional: Fetch MCP topic if relevant
-   └─> Send to Llama 3.1 13B (cached in RAM)
-   └─> Background: Grammar analysis (if enabled)
-   
-4. Response Generation
-   └─> LLM generates response
-   └─> Optionally integrate grammar correction
-   └─> Synthesize with Coqui TTS (from RAM)
-   
-5. Output & Logging
-   └─> Play audio through speaker
-   └─> Buffer conversation entry (write every 5 min)
-   └─> Update context for next exchange
+
+4. Conversation Processing
+   └─> Load conversation context (system prompt + last 20 exchanges)
+   └─> Add user message to history
+   └─> Send to Ollama (llama3.2:3b via HTTP)
+   └─> LLM generates response (streaming disabled)
+
+5. Response Generation
+   └─> Add response to conversation history
+   └─> Synthesize with Coqui VITS (GPU)
+   └─> Add 0.5s silence padding at start (prevents clipping)
+   └─> Save to /tmp/companion-audio/tts_<uuid>.wav
+
+6. Output & Cleanup
+   └─> Play through PulseAudio (paplay to PowerConf S3)
+   └─> Delete TTS temp file
+   └─> Display context summary (exchanges count)
+   └─> Wait for next Enter press
 ```
+
+**Performance breakdown:**
+- Recording: 5s (user speaks)
+- Transcription: ~1-2s (Whisper small on GPU)
+- LLM generation: ~6-8s (llama3.2:3b)
+- TTS synthesis: ~2.5s (VITS on GPU)
+- **Total: ~12-15s per exchange**
 
 ### Memory Format
 
@@ -291,6 +321,41 @@ make deploy-update
 ```
 
 **See [Git Deployment Workflow](./git-deployment-workflow.md) for complete guide.**
+
+## Running the Prototype
+
+### Quick Start (Interactive Mode)
+
+```bash
+# On Jetson
+cd ~/apps/english-companion-nx
+source .venv/bin/activate
+python conversation_prototype.py
+```
+
+**What it does:**
+1. Loads Whisper (small), TTS (VITS), connects to Ollama
+2. Press Enter to record 5 seconds of speech
+3. Plays beep → start speaking
+4. Transcribes with Whisper (GPU)
+5. Generates response with Ollama (llama3.2:3b)
+6. Synthesizes speech with TTS (GPU)
+7. Plays response through Anker PowerConf S3
+
+**Performance:** ~12-15s total per exchange
+
+### Testing Components
+
+```bash
+# Test audio hardware (microphone + speaker)
+python test_audio.py
+
+# Test TTS only
+python test_tts.py
+
+# Test Ollama connection
+ollama run llama3.2:3b "Hello, how are you?"
+```
 
 ## Essential Commands
 
@@ -830,32 +895,55 @@ Service restarts:         <1 per month
 Mean time to recovery:    <5 minutes
 ```
 
-## Common Pitfalls & Solutions
+## Common Issues & Solutions
 
-### Pitfall 1: Model Reloading
-**Problem:** Service slow after a few hours
-**Cause:** Models being reloaded from disk
-**Solution:** Use singleton ModelManager, verify models stay in RAM
+### Audio Recording Failures
 
-### Pitfall 2: Memory Leaks
-**Problem:** Memory usage grows over time
-**Cause:** Conversation context not pruned, CUDA cache not cleared
-**Solution:** Implement periodic cleanup (see code patterns)
+**Problem:** "Recording failed: invalid duration argument"
+**Cause:** arecord only accepts integer durations
+**Solution:** Ensure `duration` parameter is converted to int: `str(int(duration))`
 
-### Pitfall 3: SSD Wear
-**Problem:** High SSD writes
-**Cause:** Logging every conversation immediately
-**Solution:** Buffer writes (5-min intervals)
+**Problem:** "Device or resource busy" when recording
+**Cause:** Previous arecord process still running or device locked
+**Solution:** Call `_cleanup_previous_instances()` on startup (kills orphan arecord processes)
 
-### Pitfall 4: Thermal Throttling
-**Problem:** Slow responses after 1-2 hours
-**Cause:** Overheating, thermal throttling
-**Solution:** Ensure active cooling, monitor temps, use adaptive power modes
+**Problem:** First word of speech cut off in transcription
+**Cause:** ALSA audio buffer initialization lag
+**Solution:** Start recording before beep, trim first 1.0s from recording
 
-### Pitfall 5: Context Overflow
-**Problem:** LLM responses become incoherent
-**Cause:** Too much context, token limit exceeded
-**Solution:** Prune to last 10-20 exchanges, summarize older context
+### Audio Playback Issues
+
+**Problem:** TTS audio playback clips at start (first syllable missing)
+**Cause:** PulseAudio stream initialization delay
+**Solution:** Add 0.5s silence padding at start of TTS audio (in `_trim_audio_start()`)
+
+**Problem:** Beep not audible
+**Cause:** Using wrong audio output device
+**Solution:** Use PulseAudio (paplay) with configured AUDIO_OUTPUT_DEVICE, not speaker-test
+
+### Model/Memory Issues
+
+**Problem:** Ollama returns "Out of memory" error
+**Cause:** Whisper medium + llama3.2:3b exceeds 16GB RAM
+**Solution:** Use Whisper small instead of medium (saves ~1GB)
+
+**Problem:** "module 'coverage' has no attribute 'types'"
+**Cause:** System has old coverage 6.x, numba (Whisper dependency) needs 7.x
+**Solution:** `pip install --upgrade coverage` in venv
+
+**Problem:** Whisper using CPU instead of GPU
+**Cause:** venv installed CPU-only PyTorch from pip
+**Solution:** Recreate venv with `--system-site-packages` to access NVIDIA PyTorch 2.5.0
+
+### Dependency Issues
+
+**Problem:** TTS import fails with "No module named 'torchaudio'"
+**Cause:** torchaudio not installed or version mismatch with PyTorch
+**Solution:** Build torchaudio from source with `USE_CUDA=0 pip install . --no-build-isolation`
+
+**Problem:** PyAudio build failed "portaudio.h: No such file or directory"
+**Cause:** Missing system library
+**Solution:** `sudo apt-get install -y portaudio19-dev`
 
 ## Best Practices Checklist
 
@@ -898,27 +986,30 @@ Mean time to recovery:    <5 minutes
 - Porcupine: https://picovoice.ai/platform/porcupine/
 - Jetson Docs: https://docs.nvidia.com/jetson/
 
-## Current Status
+## Current Status (December 2024)
 
-### ✅ Completed
-- [x] Architecture designed
-- [x] Hardware selected (Anker PowerConf S3)
-- [x] Resource management patterns defined
-- [x] SSD protection strategies documented
-- [x] Memory safety guidelines established
+### ✅ Phase 1 Prototype - WORKING
+- [x] Audio hardware integration (Anker PowerConf S3)
+- [x] Whisper transcription (GPU, small model)
+- [x] Ollama LLM integration (llama3.2:3b)
+- [x] Coqui TTS synthesis (GPU, VITS)
+- [x] Interactive conversation loop (Press Enter mode)
+- [x] Context management (last 20 exchanges)
+- [x] Audio device cleanup (prevents conflicts)
+- [x] Buffer initialization handling (prevents clipping)
 
-### 🚧 In Progress
-- [ ] Phase 1: Core audio pipeline
-- [ ] Phase 2: Wake word + conversation
-- [ ] Phase 3: MCP integration
-- [ ] Phase 4: Grammar correction
-- [ ] Phase 5: Polish & optimization
+### 🚧 Phase 1 Remaining (Production-Ready)
+- [ ] Conversation logging (buffered JSONL)
+- [ ] systemd service setup (24/7 operation)
+- [ ] Memory monitoring and periodic cleanup
+- [ ] Health check scripts
 
-### 📋 Planned
-- [ ] Advanced features (voice cloning, emotion detection)
-- [ ] Mobile companion app
-- [ ] Multi-language support
-- [ ] Conversation analytics dashboard
+### 📋 Phase 2+ Planned
+- [ ] Wake word detection (Porcupine)
+- [ ] Always-on listening mode
+- [ ] MCP topic integration
+- [ ] Grammar correction
+- [ ] Performance optimization
 
 ---
 
