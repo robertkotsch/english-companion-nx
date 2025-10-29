@@ -1,0 +1,56 @@
+"""
+Configuration management for English Companion NX
+Loads settings from .env file and provides typed configuration
+"""
+
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
+class Config:
+    """Application configuration"""
+
+    # Ollama settings
+    OLLAMA_HOST = os.getenv("OLLAMA_HOST", "127.0.0.1:11434")
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+
+    # Audio settings
+    AUDIO_TEMP_DIR = os.getenv("AUDIO_TEMP_DIR", "/tmp/companion-audio")
+    AUDIO_SAMPLE_RATE = int(os.getenv("AUDIO_SAMPLE_RATE", "16000"))
+    AUDIO_RECORD_SECONDS = int(os.getenv("AUDIO_RECORD_SECONDS", "5"))
+
+    # PulseAudio device for Anker PowerConf S3
+    AUDIO_OUTPUT_DEVICE = os.getenv(
+        "AUDIO_OUTPUT_DEVICE",
+        "alsa_output.usb-Anker_PowerConf_S3_A3321-DEV-SN1-01.analog-stereo"
+    )
+
+    # Storage settings
+    CONVERSATION_LOG = os.getenv(
+        "CONVERSATION_LOG",
+        "/mnt/nvme/companion/conversations.jsonl"
+    )
+    CONVERSATION_BUFFER_INTERVAL = int(os.getenv("CONVERSATION_BUFFER_INTERVAL", "300"))
+    CONVERSATION_CONTEXT_SIZE = int(os.getenv("CONVERSATION_CONTEXT_SIZE", "20"))
+
+    # Model settings
+    WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
+    TTS_MODEL = os.getenv("TTS_MODEL", "tts_models/en/ljspeech/vits")
+
+    # Performance settings
+    USE_GPU = os.getenv("USE_GPU", "true").lower() == "true"
+
+    @classmethod
+    def ensure_dirs(cls):
+        """Ensure required directories exist"""
+        Path(cls.AUDIO_TEMP_DIR).mkdir(parents=True, exist_ok=True)
+
+        # Create conversation log directory if needed
+        log_path = Path(cls.CONVERSATION_LOG)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+
+# Initialize directories on import
+Config.ensure_dirs()
