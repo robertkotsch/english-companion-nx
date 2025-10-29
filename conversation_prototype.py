@@ -125,7 +125,7 @@ class ConversationPrototype:
 
         # Start recording BEFORE the beep to avoid buffer lag
         # Record extra time to capture the beep + user speech
-        buffer_time = 1.5  # Time for buffer warmup + beep + user reaction
+        buffer_time = 2  # Time for buffer warmup + beep + user reaction (must be integer)
         total_duration = duration + buffer_time
 
         print("🔴 RECORDING...")
@@ -138,6 +138,7 @@ class ConversationPrototype:
                 pass
 
         # Start recording in background
+        # Note: arecord duration must be an integer
         recording_process = subprocess.Popen(
             [
                 "arecord",
@@ -145,7 +146,7 @@ class ConversationPrototype:
                 "-f", "S16_LE",
                 "-c", "1",
                 "-r", str(Config.AUDIO_SAMPLE_RATE),
-                "-d", str(total_duration),
+                "-d", str(int(total_duration)),  # Convert to integer for arecord
                 temp_file
             ],
             stdout=subprocess.DEVNULL,
@@ -192,8 +193,8 @@ class ConversationPrototype:
                 raise Exception(f"Recording failed: no output file created - {error_msg} (return code {recording_process.returncode})")
 
         # Trim the warmup period (buffer + beep, but NOT user speech)
-        # Buffer warmup (0.5s) + beep (0.2s) = 0.7s trim
-        trimmed_file = self._trim_audio_start(temp_file, trim_seconds=0.7)
+        # Buffer warmup (0.5s) + beep (0.2s) + safety margin (0.3s) = 1.0s trim
+        trimmed_file = self._trim_audio_start(temp_file, trim_seconds=1.0)
 
         print("✅ Recording complete")
         return trimmed_file
