@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Read(//home/rob/.ssh/**)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\ndocs: Reorganize documentation files into MD folder structure\n\nMove deployment and Jetson-specific documentation to dedicated MD/ folder\nfor better organization. Add PROJECT_SUMMARY.md and RAG_INTEGRATION_GUIDE.md\nfor comprehensive project reference and future vector database integration.\n\nFiles reorganized:\n- DEPLOYMENT_SETUP.md -> MD/\n- JETSON_MODELS.md -> MD/\n- JETSON_SETUP.md -> MD/\n- QUICK_REFERENCE.md -> MD/\n- SETUP_COMPLETE.md -> MD/\n- git-deployment-workflow.md -> MD/\n- infrastructure-comparison.md -> MD/\n- jetson-orin-nx-deployment-guide.md -> MD/\n\nNew documentation:\n- MD/PROJECT_SUMMARY.md: Complete project overview\n- MD/RAG_INTEGRATION_GUIDE.md: Vector database integration planning\n\nUpdates:\n- .gitignore: Add domain-radar-nx.code-workspace exclusion\n- CLAUDE.md: Minor clarity updates\n- README.md: Update documentation references\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(ssh:*)",
+      "Bash(python3:*)",
+      "WebSearch",
+      "WebFetch(domain:picovoice.ai)",
+      "WebFetch(domain:github.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -45,15 +45,31 @@
   - Why: Prevent memory leaks, ensure stability
 
   ---
-  Phase 2: Wake Word & Always-On ⏱️ ~3-4 hours
+  Phase 2: Wake Word & Always-On ⏱️ ~6-10 hours
+
+  ✅ Research Complete (See MD/WAKE_WORD_SUMMARY.md)
 
   Wake Word Detection (Porcupine)
 
   Replace "Press Enter" with "Hey Companion" (or custom phrase):
-  - Porcupine integration (~1% CPU)
-  - Always listening in background
-  - Activate on wake word
+  - ✅ Porcupine selected (~1% CPU expected on Jetson)
+  - ✅ Dual wake word support (START + STOP triggers)
+  - ✅ 14 built-in keywords OR custom training available
+  - ⚠️ Must test ARM64 compatibility: python test_porcupine.py
   - Why: Hands-free, natural interaction
+
+  Phase 2A: Basic Wake Word ⏱️ ~4-6 hours
+  1. Test Porcupine on Jetson (python test_porcupine.py)
+  2. Get Picovoice AccessKey (free tier, 1 device)
+  3. Implement src/audio/wake_word.py module
+  4. Integrate with conversation_prototype.py
+  5. Test and tune sensitivity
+
+  Phase 2B: Dual Wake Word + State Machine ⏱️ ~3-4 hours
+  - Add STOP keyword detection
+  - Implement conversation state management (IDLE/LISTENING/PROCESSING/SPEAKING)
+  - Add timeout handling (auto-stop after N minutes)
+  - Test start/stop flow end-to-end
 
   Always-On Mode
 
@@ -61,6 +77,13 @@
   - Automatic conversation flow
   - Smart timeout (return to listening after response)
   - Why: True conversational experience
+
+  📄 Documentation Created:
+  - MD/PORCUPINE_RESEARCH.md (full research, 14 sections)
+  - MD/WAKE_WORD_IMPLEMENTATION_GUIDE.md (step-by-step guide)
+  - MD/WAKE_WORD_SUMMARY.md (executive summary)
+  - test_porcupine.py (compatibility test script)
+  - .env.example (updated with Porcupine config)
 
   ---
   Phase 3: MCP Topic Integration ⏱️ ~2 hours
@@ -123,8 +146,15 @@
   ☐ Complete Phase 1: Add conversation logging (buffered JSONL)
   ☐ Complete Phase 1: Create systemd service for 24/7 operation
   ☐ Complete Phase 1: Add memory monitoring and cleanup
-  ☐ Phase 2: Implement wake word detection (Porcupine)
-  ☐ Phase 2: Create always-on listening mode
+  ✅ Phase 2: Research wake word detection options (Porcupine selected)
+  ☐ Phase 2A: Test Porcupine compatibility (run test_porcupine.py on Jetson)
+  ☐ Phase 2A: Get Picovoice AccessKey (https://console.picovoice.ai/)
+  ☐ Phase 2A: Choose wake words (built-in or train custom)
+  ☐ Phase 2A: Implement src/audio/wake_word.py module
+  ☐ Phase 2A: Integrate wake word with conversation_prototype.py
+  ☐ Phase 2B: Add STOP keyword detection
+  ☐ Phase 2B: Implement conversation state machine
+  ☐ Phase 2B: Create always-on listening mode
   ☐ Phase 3: Integrate MCP for topic suggestions
   ☐ Phase 4: Add background grammar correction
   ☐ Phase 5: Performance optimization and polish
