@@ -46,6 +46,13 @@ class Config:
     # Performance settings
     USE_GPU = os.getenv("USE_GPU", "true").lower() == "true"
 
+    # Porcupine Wake Word Detection (Phase 2)
+    PORCUPINE_ACCESS_KEY = os.getenv("PORCUPINE_ACCESS_KEY", "")
+    PORCUPINE_START_KEYWORD = os.getenv("PORCUPINE_START_KEYWORD", "computer")
+    PORCUPINE_STOP_KEYWORD = os.getenv("PORCUPINE_STOP_KEYWORD", "terminator")
+    PORCUPINE_START_SENSITIVITY = float(os.getenv("PORCUPINE_START_SENSITIVITY", "0.5"))
+    PORCUPINE_STOP_SENSITIVITY = float(os.getenv("PORCUPINE_STOP_SENSITIVITY", "0.5"))
+
     @classmethod
     def ensure_dirs(cls):
         """Ensure required directories exist"""
