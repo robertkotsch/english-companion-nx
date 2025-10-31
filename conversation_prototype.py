@@ -14,6 +14,7 @@ import time
 import torch
 
 from src.core.config import Config
+from src.core.memory import MemoryMonitor
 from src.conversation.manager import ConversationManager
 from src.conversation.logger import ConversationLogger
 from src.audio.recorder import AudioRecorder
@@ -52,8 +53,17 @@ class ConversationPrototype:
         self.conversation = ConversationManager()
         self.logger = ConversationLogger()
 
+        # Initialize memory monitoring
+        print("\n🧠 Initializing memory monitoring...")
+        self.memory_monitor = MemoryMonitor(
+            warning_threshold=0.85,
+            critical_threshold=0.95,
+            cleanup_interval=10  # Cleanup every 10 conversations
+        )
+
         print("\n✅ All systems ready!")
         print("=" * 60)
+        print(f"💾 {self.memory_monitor.get_memory_summary()}")
 
 
     def run_conversation_loop(self):
@@ -117,8 +127,12 @@ class ConversationPrototype:
                         }
                     )
 
-                    # Show context info
+                    # 7. Memory monitoring and cleanup
+                    self.memory_monitor.on_conversation_complete()
+
+                    # Show stats
                     print(f"\n📊 {self.conversation.get_context_summary()}")
+                    print(f"💾 {self.memory_monitor.get_memory_summary()}")
 
                 except KeyboardInterrupt:
                     print("\n\n👋 Interrupted by user. Goodbye!")
@@ -128,9 +142,17 @@ class ConversationPrototype:
                     print("Please try again.")
 
         finally:
+            # Show final memory statistics
+            print("\n📊 Final Memory Statistics")
+            self.memory_monitor.log_memory_stats()
+
             # Flush any remaining logs
-            print("\n🔄 Flushing conversation logs...")
+            print("🔄 Flushing conversation logs...")
             self.logger.cleanup()
+
+            # Final cleanup
+            print("🧹 Final memory cleanup...")
+            self.memory_monitor.cleanup(force=True)
 
 
 def main():
