@@ -132,6 +132,9 @@ class WakeWordDetector:
         # State
         self.running = False
         self.detection_count = {"start": 0, "stop": 0}
+        self.last_start_detection = 0.0  # Timestamp of last START detection
+        self.last_stop_detection = 0.0   # Timestamp of last STOP detection
+        self.cooldown_seconds = 2.0      # Ignore detections within this window
 
         # Audio configuration
         self.target_sample_rate = 16000  # OpenWakeWord required rate
@@ -305,25 +308,33 @@ class WakeWordDetector:
                 if self.start_model in predictions:
                     score = predictions[self.start_model]
                     if score >= self.start_threshold:
-                        self.detection_count["start"] += 1
-                        print(f"🎯 START detected: '{self.start_model}' (score: {score:.3f})")
+                        # Check cooldown period to avoid duplicate detections
+                        current_time = time.time()
+                        if current_time - self.last_start_detection >= self.cooldown_seconds:
+                            self.last_start_detection = current_time
+                            self.detection_count["start"] += 1
+                            print(f"🎯 START detected: '{self.start_model}' (score: {score:.3f})")
 
-                        if self.start_callback:
-                            self.start_callback()
+                            if self.start_callback:
+                                self.start_callback()
 
-                        return WakeWordType.START
+                            return WakeWordType.START
 
                 # Check STOP model
                 if self.stop_model and self.stop_model in predictions:
                     score = predictions[self.stop_model]
                     if score >= self.stop_threshold:
-                        self.detection_count["stop"] += 1
-                        print(f"🛑 STOP detected: '{self.stop_model}' (score: {score:.3f})")
+                        # Check cooldown period to avoid duplicate detections
+                        current_time = time.time()
+                        if current_time - self.last_stop_detection >= self.cooldown_seconds:
+                            self.last_stop_detection = current_time
+                            self.detection_count["stop"] += 1
+                            print(f"🛑 STOP detected: '{self.stop_model}' (score: {score:.3f})")
 
-                        if self.stop_callback:
-                            self.stop_callback()
+                            if self.stop_callback:
+                                self.stop_callback()
 
-                        return WakeWordType.STOP
+                            return WakeWordType.STOP
 
             except Exception as e:
                 print(f"⚠️  Error during wake word detection: {e}")
@@ -371,25 +382,33 @@ class WakeWordDetector:
                 if self.start_model in predictions:
                     score = predictions[self.start_model]
                     if score >= self.start_threshold:
-                        self.detection_count["start"] += 1
-                        print(f"🎯 START detected: '{self.start_model}' (score: {score:.3f})")
+                        # Check cooldown period to avoid duplicate detections
+                        current_time = time.time()
+                        if current_time - self.last_start_detection >= self.cooldown_seconds:
+                            self.last_start_detection = current_time
+                            self.detection_count["start"] += 1
+                            print(f"🎯 START detected: '{self.start_model}' (score: {score:.3f})")
 
-                        if on_start:
-                            on_start()
-                        elif self.start_callback:
-                            self.start_callback()
+                            if on_start:
+                                on_start()
+                            elif self.start_callback:
+                                self.start_callback()
 
                 # Check STOP model
                 if self.stop_model and self.stop_model in predictions:
                     score = predictions[self.stop_model]
                     if score >= self.stop_threshold:
-                        self.detection_count["stop"] += 1
-                        print(f"🛑 STOP detected: '{self.stop_model}' (score: {score:.3f})")
+                        # Check cooldown period to avoid duplicate detections
+                        current_time = time.time()
+                        if current_time - self.last_stop_detection >= self.cooldown_seconds:
+                            self.last_stop_detection = current_time
+                            self.detection_count["stop"] += 1
+                            print(f"🛑 STOP detected: '{self.stop_model}' (score: {score:.3f})")
 
-                        if on_stop:
-                            on_stop()
-                        elif self.stop_callback:
-                            self.stop_callback()
+                            if on_stop:
+                                on_stop()
+                            elif self.stop_callback:
+                                self.stop_callback()
 
         except KeyboardInterrupt:
             print("\n⚠️  Continuous listening interrupted")
