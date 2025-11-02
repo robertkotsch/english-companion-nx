@@ -16,13 +16,14 @@ CHUNK_SIZE = 1280  # 80ms chunks
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 
-def debug_wake_word(duration=30, model_name="hey_jarvis"):
+def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
     """
     Debug wake word detection with real-time confidence scores
 
     Args:
         duration: How long to listen (seconds)
         model_name: Wake word model to test
+        device_index: Specific audio input device index (None = default)
     """
     print("=" * 60)
     print("WAKE WORD DEBUG MODE")
@@ -54,15 +55,28 @@ def debug_wake_word(duration=30, model_name="hey_jarvis"):
 
     # Open audio stream
     try:
-        stream = audio.open(
-            format=FORMAT,
-            channels=CHANNELS,
-            rate=SAMPLE_RATE,
-            input=True,
-            frames_per_buffer=CHUNK_SIZE
-        )
-        print(f"✅ Audio stream opened successfully")
-        print(f"   Device: {audio.get_default_input_device_info()['name']}")
+        if device_index is not None:
+            stream = audio.open(
+                format=FORMAT,
+                channels=CHANNELS,
+                rate=SAMPLE_RATE,
+                input=True,
+                input_device_index=device_index,
+                frames_per_buffer=CHUNK_SIZE
+            )
+            device_info = audio.get_device_info_by_index(device_index)
+            print(f"✅ Audio stream opened successfully")
+            print(f"   Device [{device_index}]: {device_info['name']}")
+        else:
+            stream = audio.open(
+                format=FORMAT,
+                channels=CHANNELS,
+                rate=SAMPLE_RATE,
+                input=True,
+                frames_per_buffer=CHUNK_SIZE
+            )
+            print(f"✅ Audio stream opened successfully")
+            print(f"   Device: {audio.get_default_input_device_info()['name']}")
     except Exception as e:
         print(f"❌ Failed to open audio stream: {e}")
         audio.terminate()
@@ -166,6 +180,7 @@ if __name__ == "__main__":
 
     duration = 30
     model = "hey_jarvis"
+    device = None
 
     if len(sys.argv) > 1:
         try:
@@ -177,4 +192,17 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         model = sys.argv[2]
 
-    debug_wake_word(duration, model)
+    if len(sys.argv) > 3:
+        try:
+            device = int(sys.argv[3])
+        except ValueError:
+            print(f"Invalid device index: {sys.argv[3]}")
+            sys.exit(1)
+
+    print("Usage: python debug_wake_word.py [duration] [model] [device_index]")
+    print(f"  duration: {duration} seconds")
+    print(f"  model: {model}")
+    print(f"  device_index: {device if device is not None else 'default'}")
+    print()
+
+    debug_wake_word(duration, model, device)

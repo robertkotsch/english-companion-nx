@@ -49,7 +49,8 @@ class WakeWordDetector:
         stop_threshold: float = 0.5,
         start_callback: Optional[Callable] = None,
         stop_callback: Optional[Callable] = None,
-        custom_model_paths: Optional[List[str]] = None
+        custom_model_paths: Optional[List[str]] = None,
+        audio_device_index: Optional[int] = None
     ):
         """
         Initialize wake word detector
@@ -62,6 +63,7 @@ class WakeWordDetector:
             start_callback: Optional callback when START detected
             stop_callback: Optional callback when STOP detected
             custom_model_paths: List of paths to custom .tflite or .onnx models
+            audio_device_index: PyAudio device index (None = use default)
         """
         if not OPENWAKEWORD_AVAILABLE:
             raise ImportError("openwakeword not installed. Install with: pip install openwakeword")
@@ -72,6 +74,7 @@ class WakeWordDetector:
         self.stop_threshold = stop_threshold
         self.start_callback = start_callback
         self.stop_callback = stop_callback
+        self.audio_device_index = audio_device_index
 
         # OpenWakeWord model
         self.oww_model: Optional[OpenWakeWordModel] = None
@@ -130,16 +133,27 @@ class WakeWordDetector:
             # Initialize audio stream
             self.audio = pyaudio.PyAudio()
 
-            self.stream = self.audio.open(
-                rate=self.sample_rate,
-                channels=1,
-                format=pyaudio.paInt16,
-                input=True,
-                frames_per_buffer=self.chunk_size
-            )
+            # Open audio stream with optional device selection
+            stream_kwargs = {
+                'rate': self.sample_rate,
+                'channels': 1,
+                'format': pyaudio.paInt16,
+                'input': True,
+                'frames_per_buffer': self.chunk_size
+            }
+
+            if self.audio_device_index is not None:
+                stream_kwargs['input_device_index'] = self.audio_device_index
+                device_info = self.audio.get_device_info_by_index(self.audio_device_index)
+                device_name = device_info['name']
+            else:
+                device_name = self.audio.get_default_input_device_info()['name']
+
+            self.stream = self.audio.open(**stream_kwargs)
 
             self.running = True
             print(f"✅ Wake word detection started")
+            print(f"   Device: {device_name}")
             print(f"   Listening for '{self.start_model}'", end="")
             if self.stop_model:
                 print(f" or '{self.stop_model}'...")

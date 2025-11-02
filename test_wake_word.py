@@ -30,7 +30,8 @@ def test_basic_detection(duration: int = 30):
         detector = WakeWordDetector(
             start_model="hey_jarvis",
             start_threshold=0.5,
-            start_callback=on_start
+            start_callback=on_start,
+            audio_device_index=0  # PowerConf S3 USB microphone
         )
 
         with detector:
@@ -94,7 +95,8 @@ def test_continuous_listening(duration: int = 60):
     try:
         detector = WakeWordDetector(
             start_model="hey_jarvis",
-            start_threshold=0.5
+            start_threshold=0.5,
+            audio_device_index=0  # PowerConf S3 USB microphone
         )
 
         detector.start()
