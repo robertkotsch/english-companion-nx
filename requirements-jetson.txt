@@ -21,7 +21,9 @@ ollama>=0.1.6  # Local LLM client
 
 # Text-to-Speech
 # TTS has many dependencies - numpy must be installed first!
-TTS>=0.21.0  # Coqui TTS (VITS model for high-quality speech)
+# IMPORTANT: TTS 0.21.0+ requires numpy==1.22.0 for Python 3.10, which conflicts with JetPack
+# Pinning to 0.20.x series for numpy>=1.24 compatibility
+TTS>=0.20.0,<0.21.0  # Coqui TTS (VITS model for high-quality speech)
 
 # Wake Word Detection (Phase 2)
 openwakeword>=0.5.0  # Open-source wake word detection (TFLite-based)
