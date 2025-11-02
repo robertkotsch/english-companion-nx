@@ -85,12 +85,12 @@ def debug_wake_word(duration=30, model_name="hey_jarvis"):
             # Read audio chunk
             audio_data = stream.read(CHUNK_SIZE, exception_on_overflow=False)
 
-            # Convert to numpy array for level calculation
+            # Convert to numpy array (required by OpenWakeWord)
             audio_array = np.frombuffer(audio_data, dtype=np.int16)
             audio_level = np.abs(audio_array).mean() / 32768.0  # Normalize to 0-1
 
-            # Get predictions from OpenWakeWord
-            prediction = oww_model.predict(audio_data)
+            # Get predictions from OpenWakeWord (requires numpy array)
+            prediction = oww_model.predict(audio_array)
 
             # Get confidence score for the target model
             confidence = prediction.get(model_name, 0.0)

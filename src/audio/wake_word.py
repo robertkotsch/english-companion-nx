@@ -205,8 +205,8 @@ class WakeWordDetector:
                     exception_on_overflow=False
                 )
 
-                # Convert to numpy array (int16 -> float32, normalized to [-1, 1])
-                audio_array = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
+                # Convert to numpy array (OpenWakeWord expects int16)
+                audio_array = np.frombuffer(audio_data, dtype=np.int16)
 
                 # Process with OpenWakeWord
                 predictions = self.oww_model.predict(audio_array)
@@ -265,8 +265,8 @@ class WakeWordDetector:
                     exception_on_overflow=False
                 )
 
-                # Convert to numpy array
-                audio_array = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
+                # Convert to numpy array (OpenWakeWord expects int16)
+                audio_array = np.frombuffer(audio_data, dtype=np.int16)
 
                 # Process with OpenWakeWord
                 predictions = self.oww_model.predict(audio_array)
