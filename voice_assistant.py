@@ -211,11 +211,17 @@ class VoiceAssistant:
 
                 elif result == WakeWordType.NONE:
                     # No wake word detected in timeout, assume user wants to speak
+                    # IMPORTANT: Stop wake detector before recording to free the audio device
+                    self.wake_detector.stop()
+
                     # Handle one conversation exchange
                     success = self.handle_conversation()
 
                     if success:
                         session_count += 1
+
+                    # Restart wake detector for next iteration (listen for stop word)
+                    self.wake_detector.start()
 
         except KeyboardInterrupt:
             print("\n⚠️  Session interrupted by user")
