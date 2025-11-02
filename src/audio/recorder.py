@@ -177,9 +177,40 @@ class AudioRecorder:
         audio = pyaudio.PyAudio()
 
         # Audio configuration
-        sample_rate = Config.AUDIO_SAMPLE_RATE
-        chunk_size = int(sample_rate * chunk_duration)
         device_index = 0  # PowerConf S3
+
+        # Auto-detect supported sample rate for this device
+        try:
+            from src.audio.wake_word import find_supported_sample_rate
+            sample_rate, _ = find_supported_sample_rate(audio, device_index)
+            # Recalculate chunk_size for our desired chunk_duration (not 80ms from wake_word)
+            chunk_size = int(sample_rate * chunk_duration)
+            print(f"   Detected sample rate: {sample_rate} Hz")
+        except ImportError:
+            # Fallback: try common rates manually
+            common_rates = [16000, 48000, 44100, 32000, 24000, 22050, 8000]
+            sample_rate = None
+            for rate in common_rates:
+                try:
+                    chunk_size = int(rate * chunk_duration)
+                    test_stream = audio.open(
+                        format=pyaudio.paInt16,
+                        channels=1,
+                        rate=rate,
+                        input=True,
+                        input_device_index=device_index,
+                        frames_per_buffer=chunk_size
+                    )
+                    test_stream.close()
+                    sample_rate = rate
+                    print(f"   Detected sample rate: {sample_rate} Hz")
+                    break
+                except Exception:
+                    continue
+
+            if sample_rate is None:
+                audio.terminate()
+                raise Exception("No supported sample rate found for device")
 
         # Open audio stream
         try:
