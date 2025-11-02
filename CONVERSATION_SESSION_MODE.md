@@ -13,13 +13,30 @@ Say "hey jarvis" → Ask one question → Get answer → Say "hey jarvis" again.
 
 ### Conversation Session Mode (New)
 ```
-Say "hey jarvis" → SESSION STARTS
+Say "hey jarvis" → SESSION STARTS + Greeting
   ├─ Ask question 1 → Get answer 1
   ├─ Ask question 2 → Get answer 2
   ├─ Ask question 3 → Get answer 3
-  └─ Say "alexa" → SESSION ENDS
+  └─ Say "alexa" OR 30s idle → SESSION ENDS
 Back to listening for "hey jarvis"...
 ```
+
+### Session Ending Options
+
+**1. Manual (Stop Word):**
+- Say "alexa" at any time
+- Immediate graceful shutdown
+- Shows session summary
+
+**2. Automatic (Idle Timeout):**
+- 30 seconds of no activity
+- Graceful shutdown with evaluation
+- Returns to wake word listening
+
+**3. Keyboard Interrupt:**
+- Press Ctrl+C
+- Emergency shutdown
+- Shows session summary
 
 ## Usage
 
@@ -144,6 +161,61 @@ The system uses a **2-second timeout** to differentiate:
    - After response, listens again
    - Either for stop word or next question
 
+## Idle Timeout Feature
+
+**Automatic session end after 30 seconds of inactivity**
+
+### How It Works
+
+After the assistant finishes speaking:
+1. **Idle timer starts** tracking time since last interaction
+2. System listens for stop word or user speech
+3. If **30 seconds pass** with no activity → automatic shutdown
+4. Session summary displayed
+5. Returns to listening for wake word
+
+### Benefits
+
+- ✅ **No forgotten sessions** - won't stay open indefinitely
+- ✅ **Battery/resource efficient** - auto-sleeps when not in use
+- ✅ **Natural flow** - graceful timeout vs abrupt cutoff
+- ✅ **Smart evaluation** - shows what you accomplished
+
+### Idle Timer Behavior
+
+**Resets when:**
+- User asks a question (speech detected)
+- User says wake word (session continues)
+- Assistant finishes responding
+
+**Does NOT reset when:**
+- Stop word detected (ends session immediately)
+- Background noise (below VAD threshold)
+- Wake word detector listening (normal operation)
+
+### Session Summary
+
+When session ends (manually or automatically), you'll see:
+
+```
+📊 Session Summary
+============================================================
+Conversations: 3
+Duration: 145.2 seconds (2.4 minutes)
+Average time per exchange: 48.4s
+Reason: Idle timeout (30.0s of inactivity)
+
+✅ Nice conversation - hope that helped!
+============================================================
+😴 Going back to sleep... Say 'hey jarvis' to wake me up!
+```
+
+**Evaluation messages vary by activity:**
+- 0 conversations: "No questions asked this session."
+- 1 conversation: "Quick session - got your question answered!"
+- 2-3 conversations: "Nice conversation - hope that helped!"
+- 4+ conversations: "Great conversation! We covered N topics together."
+
 ## Example Session
 
 ```
@@ -154,6 +226,16 @@ The system uses a **2-second timeout** to differentiate:
 🎯 WAKE WORD DETECTED! (Session #1)
 ============================================================
 💬 CONVERSATION SESSION ACTIVE
+============================================================
+💭 Generating greeting...
+🤖 Assistant: Hey! What's up?
+
+[TTS plays greeting]
+
+Options:
+  - Say 'alexa' to end this session
+  - Or just start speaking for Q&A
+  - Session auto-ends after 30.0s of inactivity
 ============================================================
 
 👂 Listening (speak for Q&A, or say 'alexa' to exit)...

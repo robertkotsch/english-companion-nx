@@ -210,9 +210,12 @@ class VoiceAssistant:
             print(f"⚠️  Greeting failed: {e}")
             # Non-critical - continue session even if greeting fails
 
-    def run_conversation_session(self):
+    def run_conversation_session(self, idle_timeout: float = 30.0):
         """
-        Run a conversation session (multiple exchanges until stop word)
+        Run a conversation session (multiple exchanges until stop word or timeout)
+
+        Args:
+            idle_timeout: Seconds of inactivity before auto-ending session (default: 30s)
 
         Returns:
             int: Number of conversations in this session
@@ -224,47 +227,105 @@ class VoiceAssistant:
         # Greet the user when session starts
         self.greet_user()
 
-        print("\nOptions:")
+        print(f"\nOptions:")
         print(f"  - Say 'alexa' to end this session")
         print(f"  - Or just start speaking for Q&A")
+        print(f"  - Session auto-ends after {idle_timeout}s of inactivity")
         print("=" * 60)
         print()
 
         session_count = 0
+        session_start_time = time.time()
+        last_activity_time = time.time()
 
         try:
             while True:
-                print("\n👂 Listening (speak for Q&A, or say 'alexa' to exit)...\n")
+                print(f"\n👂 Listening (speak for Q&A, or say 'alexa' to exit)...\n")
 
-                # Listen for either stop word or normal speech
-                # We'll use a timeout to give user time to speak
+                # First, quick check for stop word or user wanting to speak (2s)
                 result = self.wake_detector.detect_once(timeout=2.0)
 
                 if result == WakeWordType.STOP:
+                    # User said stop word - end gracefully
                     print(f"\n{'='*60}")
                     print("🛑 STOP WORD DETECTED - Ending conversation session")
                     print(f"{'='*60}\n")
-                    print(f"Session summary: {session_count} conversations")
+                    self._show_session_summary(session_count, session_start_time)
                     break
 
+                elif result == WakeWordType.START:
+                    # User said wake word again during session - just acknowledge
+                    print("ℹ️  Already in session - continue speaking!")
+                    last_activity_time = time.time()
+                    continue
+
                 elif result == WakeWordType.NONE:
-                    # No wake word detected in timeout, assume user wants to speak
-                    # IMPORTANT: Stop wake detector before recording to free the audio device
-                    self.wake_detector.stop()
+                    # No wake word detected in 2s - check if idle or user wants to speak
+                    idle_duration = time.time() - last_activity_time
 
-                    # Handle one conversation exchange
-                    success = self.handle_conversation()
+                    if idle_duration >= idle_timeout:
+                        # Idle timeout reached - end session gracefully
+                        print(f"\n{'='*60}")
+                        print(f"💤 IDLE TIMEOUT ({idle_timeout}s) - Ending conversation session")
+                        print(f"{'='*60}\n")
+                        self._show_session_summary(session_count, session_start_time, idle=True)
+                        break
+                    else:
+                        # Assume user wants to speak
+                        # Stop wake detector before recording to free the audio device
+                        self.wake_detector.stop()
 
-                    if success:
-                        session_count += 1
+                        # Handle one conversation exchange
+                        success = self.handle_conversation()
 
-                    # Restart wake detector for next iteration (listen for stop word)
-                    self.wake_detector.start()
+                        if success:
+                            session_count += 1
+                            last_activity_time = time.time()  # Reset idle timer
+
+                        # Restart wake detector for next iteration (listen for stop word)
+                        self.wake_detector.start()
 
         except KeyboardInterrupt:
             print("\n⚠️  Session interrupted by user")
+            self._show_session_summary(session_count, session_start_time)
 
         return session_count
+
+    def _show_session_summary(self, conversation_count: int, start_time: float, idle: bool = False):
+        """
+        Display session summary and evaluation
+
+        Args:
+            conversation_count: Number of conversations in this session
+            start_time: Session start timestamp
+            idle: Whether session ended due to idle timeout
+        """
+        duration = time.time() - start_time
+
+        print("\n📊 Session Summary")
+        print("=" * 60)
+        print(f"Conversations: {conversation_count}")
+        print(f"Duration: {duration:.1f} seconds ({duration/60:.1f} minutes)")
+
+        if conversation_count > 0:
+            avg_time = duration / conversation_count
+            print(f"Average time per exchange: {avg_time:.1f}s")
+
+        if idle:
+            print(f"Reason: Idle timeout ({duration:.1f}s of inactivity)")
+
+        # Evaluation message
+        if conversation_count == 0:
+            print("\n💭 No questions asked this session.")
+        elif conversation_count == 1:
+            print("\n✅ Quick session - got your question answered!")
+        elif conversation_count <= 3:
+            print("\n✅ Nice conversation - hope that helped!")
+        else:
+            print(f"\n✅ Great conversation! We covered {conversation_count} topics together.")
+
+        print("=" * 60)
+        print("😴 Going back to sleep... Say 'hey jarvis' to wake me up!")
 
     def run(self):
         """
