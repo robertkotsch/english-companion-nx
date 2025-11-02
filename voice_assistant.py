@@ -184,6 +184,32 @@ class VoiceAssistant:
             traceback.print_exc()
             return False
 
+    def greet_user(self):
+        """
+        Generate and speak a greeting when session starts
+        """
+        try:
+            # Generate greeting from LLM
+            print("💭 Generating greeting...")
+            greeting_prompt = "Greet me briefly and enthusiastically to start our conversation. Keep it very short (1-2 sentences max)."
+            greeting = self.conversation.generate_response(greeting_prompt)
+
+            # Clear this from conversation history (it's just a greeting, not real conversation)
+            # Remove the last exchange (greeting prompt and response)
+            if len(self.conversation.context) >= 2:
+                self.conversation.context = self.conversation.context[:-2]
+
+            print(f"🤖 Assistant: {greeting}\n")
+
+            # Synthesize and play greeting
+            tts_file = self.synthesis.synthesize(greeting)
+            self.player.play(tts_file)
+            self.synthesis.cleanup_file(tts_file)
+
+        except Exception as e:
+            print(f"⚠️  Greeting failed: {e}")
+            # Non-critical - continue session even if greeting fails
+
     def run_conversation_session(self):
         """
         Run a conversation session (multiple exchanges until stop word)
@@ -194,7 +220,11 @@ class VoiceAssistant:
         print(f"\n{'='*60}")
         print("💬 CONVERSATION SESSION ACTIVE")
         print("=" * 60)
-        print("Options:")
+
+        # Greet the user when session starts
+        self.greet_user()
+
+        print("\nOptions:")
         print(f"  - Say 'alexa' to end this session")
         print(f"  - Or just start speaking for Q&A")
         print("=" * 60)
