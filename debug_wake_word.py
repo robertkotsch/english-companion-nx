@@ -11,14 +11,47 @@ import pyaudio
 from openwakeword.model import Model
 
 # Audio configuration
-# Device native rate (PowerConf S3 is 48kHz)
-DEVICE_SAMPLE_RATE = 48000
 # OpenWakeWord required rate
 TARGET_SAMPLE_RATE = 16000
-# Chunk size for 80ms at 48kHz
-CHUNK_SIZE = 3840  # 80ms at 48kHz
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
+
+# Common sample rates to try (in order of preference for downsampling to 16kHz)
+COMMON_SAMPLE_RATES = [16000, 48000, 44100, 32000, 24000, 22050, 8000]
+
+def find_supported_sample_rate(audio, device_index=None):
+    """
+    Find a supported sample rate for the device
+
+    Returns:
+        (sample_rate, chunk_size) tuple
+    """
+    for rate in COMMON_SAMPLE_RATES:
+        try:
+            # Calculate chunk size for 80ms at this rate
+            chunk_size = int(rate * 0.08)
+
+            # Try to open stream
+            stream_kwargs = {
+                'format': FORMAT,
+                'channels': CHANNELS,
+                'rate': rate,
+                'input': True,
+                'frames_per_buffer': chunk_size
+            }
+            if device_index is not None:
+                stream_kwargs['input_device_index'] = device_index
+
+            test_stream = audio.open(**stream_kwargs)
+            test_stream.close()
+
+            print(f"✅ Found supported sample rate: {rate} Hz")
+            return rate, chunk_size
+        except Exception as e:
+            print(f"   ❌ {rate} Hz not supported")
+            continue
+
+    raise Exception("No supported sample rate found!")
 
 def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
     """
@@ -34,9 +67,7 @@ def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
     print("=" * 60)
     print(f"Model: {model_name}")
     print(f"Duration: {duration} seconds")
-    print(f"Device sample rate: {DEVICE_SAMPLE_RATE} Hz")
     print(f"Target sample rate: {TARGET_SAMPLE_RATE} Hz (OpenWakeWord)")
-    print(f"Chunk size: {CHUNK_SIZE} samples ({CHUNK_SIZE/DEVICE_SAMPLE_RATE*1000:.1f}ms)")
     print("=" * 60)
     print()
 
@@ -58,30 +89,38 @@ def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
             print(f"  [{i}] {info['name']} (channels: {info['maxInputChannels']}, rate: {info['defaultSampleRate']})")
     print()
 
+    # Find supported sample rate
+    print("🔍 Auto-detecting supported sample rate...")
+    try:
+        device_sample_rate, chunk_size = find_supported_sample_rate(audio, device_index)
+        print(f"   Device sample rate: {device_sample_rate} Hz")
+        print(f"   Chunk size: {chunk_size} samples ({chunk_size/device_sample_rate*1000:.1f}ms)")
+    except Exception as e:
+        print(f"❌ Failed to find supported sample rate: {e}")
+        audio.terminate()
+        return
+    print()
+
     # Open audio stream
     try:
+        stream_kwargs = {
+            'format': FORMAT,
+            'channels': CHANNELS,
+            'rate': device_sample_rate,
+            'input': True,
+            'frames_per_buffer': chunk_size
+        }
+
         if device_index is not None:
-            stream = audio.open(
-                format=FORMAT,
-                channels=CHANNELS,
-                rate=DEVICE_SAMPLE_RATE,
-                input=True,
-                input_device_index=device_index,
-                frames_per_buffer=CHUNK_SIZE
-            )
+            stream_kwargs['input_device_index'] = device_index
             device_info = audio.get_device_info_by_index(device_index)
-            print(f"✅ Audio stream opened successfully")
-            print(f"   Device [{device_index}]: {device_info['name']}")
+            device_name = f"[{device_index}]: {device_info['name']}"
         else:
-            stream = audio.open(
-                format=FORMAT,
-                channels=CHANNELS,
-                rate=DEVICE_SAMPLE_RATE,
-                input=True,
-                frames_per_buffer=CHUNK_SIZE
-            )
-            print(f"✅ Audio stream opened successfully")
-            print(f"   Device: {audio.get_default_input_device_info()['name']}")
+            device_name = audio.get_default_input_device_info()['name']
+
+        stream = audio.open(**stream_kwargs)
+        print(f"✅ Audio stream opened successfully")
+        print(f"   Device: {device_name}")
     except Exception as e:
         print(f"❌ Failed to open audio stream: {e}")
         audio.terminate()
@@ -99,17 +138,23 @@ def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
     max_confidence = 0.0
     detection_count = 0
 
+    # Calculate downsampling ratio
+    downsample_ratio = device_sample_rate // TARGET_SAMPLE_RATE if device_sample_rate != TARGET_SAMPLE_RATE else 1
+
     try:
         while time.time() - start_time < duration:
-            # Read audio chunk (at 48kHz)
-            audio_data = stream.read(CHUNK_SIZE, exception_on_overflow=False)
+            # Read audio chunk at device native rate
+            audio_data = stream.read(chunk_size, exception_on_overflow=False)
 
             # Convert to numpy array
-            audio_array_48k = np.frombuffer(audio_data, dtype=np.int16)
-            audio_level = np.abs(audio_array_48k).mean() / 32768.0  # Normalize to 0-1
+            audio_array = np.frombuffer(audio_data, dtype=np.int16)
+            audio_level = np.abs(audio_array).mean() / 32768.0  # Normalize to 0-1
 
-            # Downsample from 48kHz to 16kHz (3:1 ratio using decimation)
-            audio_array_16k = audio_array_48k[::3]  # Take every 3rd sample
+            # Downsample to 16kHz if necessary
+            if downsample_ratio > 1:
+                audio_array_16k = audio_array[::downsample_ratio]  # Decimation
+            else:
+                audio_array_16k = audio_array
 
             # Get predictions from OpenWakeWord (requires 16kHz int16 numpy array)
             prediction = oww_model.predict(audio_array_16k)
