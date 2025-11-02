@@ -183,12 +183,12 @@ The system uses intelligent silence detection to automatically stop recording:
 1. After wake word, beep signals you can start speaking
 2. System detects when you start talking (audio level > threshold)
 3. Records continuously while you speak
-4. Waits for 1.5 seconds of silence
+4. Waits for 3.0 seconds of silence
 5. Automatically stops recording and processes your question
 
 **Default settings:**
 - Silence threshold: 0.01 (audio level)
-- Silence duration: 1.5s
+- Silence duration: 3.0s
 - Minimum recording: 0.5s
 - Maximum recording: 30s (safety limit)
 
@@ -199,14 +199,14 @@ Edit `voice_assistant.py` and modify the `record_with_vad()` parameters:
 ```python
 audio_file = self.recorder.record_with_vad(
     silence_threshold=0.01,   # Lower = more sensitive (e.g., 0.005)
-    silence_duration=1.5,     # Longer = more patient (e.g., 2.0)
+    silence_duration=3.0,     # Longer = more patient (e.g., 4.0)
     min_duration=0.5,         # Minimum recording time
     max_duration=30.0         # Maximum recording time
 )
 ```
 
 **If recording stops too early:**
-- Increase `silence_duration` to 2.0 or 2.5 seconds
+- Increase `silence_duration` to 4.0 or 5.0 seconds
 - Speak more continuously without long pauses
 
 **If recording doesn't stop:**
@@ -215,9 +215,9 @@ audio_file = self.recorder.record_with_vad(
 
 **Test VAD separately:**
 ```bash
-python test_vad_recording.py           # Default settings
+python test_vad_recording.py           # Default: 0.01 threshold, 3.0s silence
 python test_vad_recording.py 0.02      # Less sensitive (noisy environment)
-python test_vad_recording.py 0.01 2.0  # Wait 2s of silence
+python test_vad_recording.py 0.01 5.0  # Wait 5s of silence (very patient)
 ```
 
 ### Audio Quality

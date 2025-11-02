@@ -7,7 +7,7 @@ Usage:
     python test_vad_recording.py [silence_threshold] [silence_duration]
 
 Examples:
-    python test_vad_recording.py           # Default: 0.01 threshold, 1.5s silence
+    python test_vad_recording.py           # Default: 0.01 threshold, 3.0s silence
     python test_vad_recording.py 0.02      # Higher threshold (less sensitive)
     python test_vad_recording.py 0.01 2.0  # 2 seconds of silence before stopping
 """
@@ -18,7 +18,7 @@ from src.audio.recorder import AudioRecorder
 
 def test_vad_recording(
     silence_threshold: float = 0.01,
-    silence_duration: float = 1.5
+    silence_duration: float = 3.0
 ):
     """
     Test VAD recording
@@ -87,7 +87,7 @@ def main():
     """Main entry point"""
     # Parse command line arguments
     silence_threshold = 0.01
-    silence_duration = 1.5
+    silence_duration = 3.0
 
     if len(sys.argv) > 1:
         if sys.argv[1] in ["--help", "-h"]:

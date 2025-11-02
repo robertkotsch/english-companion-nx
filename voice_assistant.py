@@ -110,7 +110,7 @@ class VoiceAssistant:
             # Stops automatically when user stops speaking
             audio_file = self.recorder.record_with_vad(
                 silence_threshold=0.01,   # Audio level below this = silence
-                silence_duration=1.5,     # Stop after 1.5s of silence
+                silence_duration=3.0,     # Stop after 3.0s of silence
                 min_duration=0.5,         # Minimum 0.5s recording
                 max_duration=30.0         # Maximum 30s (safety limit)
             )

@@ -40,7 +40,7 @@ audio_file = self.recorder.record()
 # New: VAD-based recording
 audio_file = self.recorder.record_with_vad(
     silence_threshold=0.01,   # Audio level threshold
-    silence_duration=1.5,     # Stop after 1.5s silence
+    silence_duration=3.0,     # Stop after 3.0s silence
     min_duration=0.5,         # Minimum recording
     max_duration=30.0         # Maximum recording (safety)
 )
@@ -108,7 +108,7 @@ while recording:
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `silence_threshold` | 0.01 | Audio level below this is considered silence (0.0-1.0) |
-| `silence_duration` | 1.5s | How long to wait in silence before stopping |
+| `silence_duration` | 3.0s | How long to wait in silence before stopping |
 | `min_duration` | 0.5s | Minimum recording time (prevents accidental cutoff) |
 | `max_duration` | 30s | Maximum recording time (safety limit) |
 | `chunk_duration` | 0.1s | How often to check audio level (100ms) |
@@ -151,9 +151,9 @@ audio_level = np.abs(audio_array).mean() / 32768.0  # Normalize to 0-1
 User says: "What time is it?"
 │
 ├─ 🗣️ Speech detected... (0.5s)
-├─ Recording... 2.8s
+├─ Recording... 4.3s
 ├─ 🤫 Silence detected, waiting...
-└─ ✅ Recording complete (2.8s) - Detected 1.5s of silence
+└─ ✅ Recording complete (4.3s) - Detected 3.0s of silence
 ```
 
 ### Example 2: Long Explanation
@@ -162,9 +162,9 @@ User says: "What time is it?"
 User says: "Can you explain the difference between present perfect and past simple?"
 │
 ├─ 🗣️ Speech detected... (1.2s)
-├─ Recording... 8.5s
+├─ Recording... 10.0s
 ├─ 🤫 Silence detected, waiting...
-└─ ✅ Recording complete (8.5s) - Detected 1.5s of silence
+└─ ✅ Recording complete (10.0s) - Detected 3.0s of silence
 ```
 
 ### Example 3: Paused Speech
@@ -173,11 +173,11 @@ User says: "Can you explain the difference between present perfect and past simp
 User says: "What is... [thinks]... the capital of France?"
 │
 ├─ 🗣️ Speech detected... (0.8s)
-├─ 🤫 Silence detected, waiting... (0.7s - less than 1.5s)
+├─ 🤫 Silence detected, waiting... (2.0s - less than 3.0s)
 ├─ 🗣️ Speaking resumed... (1.2s)
-├─ Recording... 4.3s
+├─ Recording... 7.0s
 ├─ 🤫 Silence detected, waiting...
-└─ ✅ Recording complete (4.3s) - Detected 1.5s of silence
+└─ ✅ Recording complete (7.0s) - Detected 3.0s of silence
 ```
 
 ## Tuning Guidelines
@@ -188,7 +188,7 @@ If background noise triggers recording:
 
 ```python
 silence_threshold=0.02,  # Raise threshold
-silence_duration=1.5
+silence_duration=3.0
 ```
 
 ### Slow Speaker / Long Pauses
@@ -197,7 +197,7 @@ If recording stops during natural pauses:
 
 ```python
 silence_threshold=0.01,
-silence_duration=2.5  # Wait longer before stopping
+silence_duration=5.0  # Wait longer before stopping
 ```
 
 ### Fast Speaker
@@ -206,7 +206,7 @@ If you speak quickly without pauses:
 
 ```python
 silence_threshold=0.01,
-silence_duration=1.0  # Stop sooner
+silence_duration=2.0  # Stop sooner
 ```
 
 ## Testing Recommendations
@@ -281,10 +281,10 @@ python test_vad_recording.py 0.02  # Raise threshold
 
 ### Recording stops during speech
 
-**Cause:** Long pauses between words
+**Cause:** Long pauses between words (current default is 3.0s)
 **Solution:**
 ```bash
-python test_vad_recording.py 0.01 2.5  # Wait 2.5s of silence
+python test_vad_recording.py 0.01 5.0  # Wait 5.0s of silence for longer pauses
 ```
 
 ## Comparison: Old vs New
