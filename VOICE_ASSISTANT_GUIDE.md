@@ -1,8 +1,8 @@
 # Voice Assistant Usage Guide
 
-## Phase 2B: Always-On Voice Assistant
+## Phase 2B: Always-On Voice Assistant with Conversation Sessions
 
-The voice assistant combines wake word detection with the conversation system for a hands-free experience.
+The voice assistant combines wake word detection with conversation sessions for natural, hands-free conversations. Start a session with a wake word, have multiple Q&A exchanges, then end the session with a stop trigger word.
 
 ## Quick Start
 
@@ -12,7 +12,37 @@ source .venv/bin/activate
 python voice_assistant.py
 ```
 
-**Then simply say:** `"hey jarvis"` to start a conversation!
+**Then:**
+1. Say `"hey jarvis"` to **start a conversation session**
+2. Ask multiple questions without repeating the wake word
+3. Say `"alexa"` to **end the session** when you're done
+
+## Conversation Sessions
+
+### Traditional vs Session Mode
+
+**Traditional (single Q&A):**
+```
+"hey jarvis" → Question → Answer → "hey jarvis" → Question → Answer...
+```
+
+**Session Mode (multiple Q&A):**
+```
+"hey jarvis" → SESSION STARTS
+  → Question 1 → Answer 1
+  → Question 2 → Answer 2
+  → Question 3 → Answer 3
+  → "alexa" → SESSION ENDS
+```
+
+### Benefits
+
+- ✅ **Natural:** Multiple questions without repeating wake word
+- ✅ **Efficient:** Saves 2+ seconds per follow-up question
+- ✅ **Context:** Maintains conversation context across exchanges
+- ✅ **Flexible:** Quick 1-question or extended multi-question sessions
+
+See `CONVERSATION_SESSION_MODE.md` for detailed documentation.
 
 ## How It Works
 
@@ -23,12 +53,16 @@ python voice_assistant.py
 └─────────────────────────────────────────┘
                 ↓ detected
 ┌─────────────────────────────────────────┐
-│      🔔 Beep (you can start speaking)   │
+│   💬 CONVERSATION SESSION STARTS        │
 └─────────────────────────────────────────┘
+        ↓                            ↑
+    Listen for:                      │
+    - Stop word ("alexa") ───────────┘ (end session)
+    - Or user speech ↓
                 ↓
 ┌─────────────────────────────────────────┐
 │   🎤 Record User Speech (VAD-based)     │
-│    Stops automatically when you stop    │
+│    Stops after 3s of silence            │
 │      (saved to /tmp/companion-audio)    │
 └─────────────────────────────────────────┘
                 ↓
@@ -51,7 +85,8 @@ python voice_assistant.py
 └─────────────────────────────────────────┘
                 ↓
 ┌─────────────────────────────────────────┐
-│  🔁 Return to Wake Word Listening...    │
+│  🔁 Back to Session Listening...        │
+│     (for next question or stop word)    │
 └─────────────────────────────────────────┘
 ```
 

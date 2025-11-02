@@ -40,7 +40,9 @@ class VoiceAssistant:
     def __init__(
         self,
         wake_word_model: str = "hey_jarvis",
+        stop_word_model: str = "alexa",
         wake_word_threshold: float = 0.5,
+        stop_word_threshold: float = 0.5,
         audio_device_index: int = 0
     ):
         """
@@ -48,7 +50,9 @@ class VoiceAssistant:
 
         Args:
             wake_word_model: Wake word model name (default: "hey_jarvis")
+            stop_word_model: Stop word model name (default: "alexa")
             wake_word_threshold: Detection threshold 0.0-1.0 (default: 0.5)
+            stop_word_threshold: Stop word threshold 0.0-1.0 (default: 0.5)
             audio_device_index: PyAudio device index (default: 0 for PowerConf S3)
         """
         print("🚀 English Companion NX - Voice Assistant (Phase 2B)")
@@ -64,7 +68,9 @@ class VoiceAssistant:
         print("\n👂 Initializing wake word detection...")
         self.wake_detector = WakeWordDetector(
             start_model=wake_word_model,
+            stop_model=stop_word_model,
             start_threshold=wake_word_threshold,
+            stop_threshold=stop_word_threshold,
             audio_device_index=audio_device_index
         )
 
@@ -170,25 +176,73 @@ class VoiceAssistant:
             traceback.print_exc()
             return False
 
+    def run_conversation_session(self):
+        """
+        Run a conversation session (multiple exchanges until stop word)
+
+        Returns:
+            int: Number of conversations in this session
+        """
+        print(f"\n{'='*60}")
+        print("💬 CONVERSATION SESSION ACTIVE")
+        print("=" * 60)
+        print("Options:")
+        print(f"  - Say 'alexa' to end this session")
+        print(f"  - Or just start speaking for Q&A")
+        print("=" * 60)
+        print()
+
+        session_count = 0
+
+        try:
+            while True:
+                print("\n👂 Listening (speak for Q&A, or say 'alexa' to exit)...\n")
+
+                # Listen for either stop word or normal speech
+                # We'll use a timeout to give user time to speak
+                result = self.wake_detector.detect_once(timeout=2.0)
+
+                if result == WakeWordType.STOP:
+                    print(f"\n{'='*60}")
+                    print("🛑 STOP WORD DETECTED - Ending conversation session")
+                    print(f"{'='*60}\n")
+                    print(f"Session summary: {session_count} conversations")
+                    break
+
+                elif result == WakeWordType.NONE:
+                    # No wake word detected in timeout, assume user wants to speak
+                    # Handle one conversation exchange
+                    success = self.handle_conversation()
+
+                    if success:
+                        session_count += 1
+
+        except KeyboardInterrupt:
+            print("\n⚠️  Session interrupted by user")
+
+        return session_count
+
     def run(self):
         """
         Run always-on voice assistant
 
         Main loop:
         1. Listen for wake word
-        2. When detected, handle conversation
-        3. Return to listening
+        2. When detected, enter conversation session
+        3. In session: handle multiple Q&A until stop word
+        4. Return to listening for wake word
         """
         print("\n" + "=" * 60)
         print("👂 ALWAYS-ON VOICE ASSISTANT")
         print("=" * 60)
-        print(f"Wake word: 'hey jarvis'")
-        print("Say the wake word to start a conversation")
+        print(f"Wake word: 'hey jarvis' (starts conversation session)")
+        print(f"Stop word: 'alexa' (ends conversation session)")
         print("Press Ctrl+C to exit")
         print("=" * 60)
         print()
 
-        conversation_count = 0
+        total_conversations = 0
+        session_number = 0
 
         try:
             # Start wake word detector
@@ -201,24 +255,20 @@ class VoiceAssistant:
                 result = self.wake_detector.detect_once(timeout=None)
 
                 if result == WakeWordType.START:
+                    session_number += 1
                     print(f"\n{'='*60}")
-                    print(f"🎯 WAKE WORD DETECTED! (Conversation #{conversation_count + 1})")
+                    print(f"🎯 WAKE WORD DETECTED! (Session #{session_number})")
                     print(f"{'='*60}\n")
 
-                    # Temporarily stop wake word detection during conversation
-                    self.wake_detector.stop()
+                    # Enter conversation session
+                    # Wake detector stays active to listen for stop word
+                    session_count = self.run_conversation_session()
+                    total_conversations += session_count
 
-                    # Handle the conversation
-                    success = self.handle_conversation()
-
-                    if success:
-                        conversation_count += 1
-
-                    # Restart wake word detection
+                    # Continue listening for wake word
                     print(f"\n{'='*60}")
                     print("🎧 Returning to wake word listening...")
                     print(f"{'='*60}\n")
-                    self.wake_detector.start()
 
         except KeyboardInterrupt:
             print("\n\n⚠️  Interrupted by user")
@@ -234,9 +284,11 @@ class VoiceAssistant:
             # Show final statistics
             print("\n📊 Final Statistics")
             print("=" * 60)
-            print(f"Total conversations: {conversation_count}")
+            print(f"Total sessions: {session_number}")
+            print(f"Total conversations: {total_conversations}")
             stats = self.wake_detector.get_stats()
             print(f"Wake word detections: {stats['start_detections']}")
+            print(f"Stop word detections: {stats['stop_detections']}")
             print("=" * 60)
 
             # Memory statistics
@@ -260,34 +312,51 @@ def main():
 
     # Parse command line arguments
     wake_word_model = "hey_jarvis"
-    threshold = 0.5
+    stop_word_model = "alexa"
+    wake_threshold = 0.5
+    stop_threshold = 0.5
     device_index = 0
 
     if len(sys.argv) > 1 and sys.argv[1] in ["--help", "-h"]:
-        print("Usage: python voice_assistant.py [MODEL] [THRESHOLD] [DEVICE]")
+        print("Usage: python voice_assistant.py [WAKE_MODEL] [STOP_MODEL] [WAKE_THRESH] [STOP_THRESH] [DEVICE]")
         print()
         print("Arguments:")
-        print("  MODEL      - Wake word model (default: hey_jarvis)")
-        print("  THRESHOLD  - Detection threshold 0.0-1.0 (default: 0.5)")
-        print("  DEVICE     - Audio device index (default: 0)")
+        print("  WAKE_MODEL  - Wake word model (default: hey_jarvis)")
+        print("  STOP_MODEL  - Stop word model (default: alexa)")
+        print("  WAKE_THRESH - Wake detection threshold 0.0-1.0 (default: 0.5)")
+        print("  STOP_THRESH - Stop detection threshold 0.0-1.0 (default: 0.5)")
+        print("  DEVICE      - Audio device index (default: 0)")
+        print()
+        print("Available models: hey_jarvis, alexa, hey_mycroft, timer")
         print()
         print("Examples:")
         print("  python voice_assistant.py")
-        print("  python voice_assistant.py hey_jarvis 0.5 0")
-        print("  python voice_assistant.py alexa 0.6 0")
+        print("  python voice_assistant.py hey_jarvis alexa 0.5 0.5 0")
+        print("  python voice_assistant.py hey_jarvis timer 0.5 0.6 0")
+        print()
+        print("How it works:")
+        print("  1. Say wake word ('hey jarvis') to start conversation session")
+        print("  2. Have multiple Q&A exchanges")
+        print("  3. Say stop word ('alexa') to end session and return to listening")
         return
 
     if len(sys.argv) > 1:
         wake_word_model = sys.argv[1]
     if len(sys.argv) > 2:
-        threshold = float(sys.argv[2])
+        stop_word_model = sys.argv[2]
     if len(sys.argv) > 3:
-        device_index = int(sys.argv[3])
+        wake_threshold = float(sys.argv[3])
+    if len(sys.argv) > 4:
+        stop_threshold = float(sys.argv[4])
+    if len(sys.argv) > 5:
+        device_index = int(sys.argv[5])
 
     try:
         assistant = VoiceAssistant(
             wake_word_model=wake_word_model,
-            wake_word_threshold=threshold,
+            stop_word_model=stop_word_model,
+            wake_word_threshold=wake_threshold,
+            stop_word_threshold=stop_threshold,
             audio_device_index=device_index
         )
         assistant.run()
