@@ -109,6 +109,14 @@ class WakeWordDetector:
                 print(f"   STOP model: '{stop_model}' (threshold: {stop_threshold})")
             print(f"   Available models: {list(self.oww_model.models.keys())}")
 
+        except ValueError as e:
+            if "Could not open" in str(e) and ".tflite" in str(e):
+                raise Exception(
+                    f"OpenWakeWord models not found. Please download them first:\n"
+                    f"  python3 -c \"import openwakeword; openwakeword.utils.download_models()\"\n"
+                    f"Original error: {e}"
+                )
+            raise Exception(f"Failed to initialize OpenWakeWord models: {e}")
         except Exception as e:
             raise Exception(f"Failed to initialize OpenWakeWord models: {e}")
 

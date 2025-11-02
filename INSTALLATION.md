@@ -2,7 +2,7 @@
 
 ## Quick Installation
 
-Due to numpy dependency conflicts between Coqui TTS and JetPack system packages, follow this **two-step installation process**:
+Due to numpy dependency conflicts between Coqui TTS and JetPack system packages, follow this **three-step installation process**:
 
 ### Step 1: Install Main Dependencies
 
@@ -22,12 +22,26 @@ pip install TTS==0.22.0 --no-deps
 
 The `--no-deps` flag bypasses TTS's strict `numpy==1.22.0` requirement, allowing it to use JetPack's `numpy>=1.24.1`. TTS works correctly with numpy 1.24+ despite the declared dependency.
 
+### Step 3: Download OpenWakeWord Models
+
+```bash
+python3 -c "import openwakeword; openwakeword.utils.download_models()"
+```
+
+This downloads the pre-trained wake word models (hey_jarvis, alexa, hey_mycroft, timer) to the OpenWakeWord package directory. Models are ~1-5MB each.
+
 ### Verify Installation
 
 Test TTS functionality:
 
 ```bash
 python test_tts.py
+```
+
+Test wake word detection:
+
+```bash
+python test_wake_word.py basic 30
 ```
 
 Test full conversation system:
@@ -112,6 +126,24 @@ pactl list sinks
 python test_audio.py
 ```
 
+### "Could not open .tflite" - OpenWakeWord models not found
+
+**Cause:** OpenWakeWord models not downloaded
+**Solution:** Download models (step 3):
+```bash
+python3 -c "import openwakeword; openwakeword.utils.download_models()"
+```
+
+To verify models are downloaded:
+```bash
+python3 -c "import openwakeword; from openwakeword.model import Model; m = Model(); print('Available models:', list(m.models.keys()))"
+```
+
+### "GPU device discovery failed" warning (ONNX Runtime)
+
+**Cause:** ONNX Runtime can't detect GPU on Jetson
+**Solution:** This is a harmless warning. OpenWakeWord will use TFLite runtime (default on Linux) which works correctly with Jetson GPU. You can ignore this message.
+
 ## Full Clean Installation
 
 If you encounter persistent issues, perform a clean installation:
@@ -127,13 +159,15 @@ rm -rf .venv
 python3 -m venv .venv --system-site-packages
 source .venv/bin/activate
 
-# Install dependencies (two-step process)
+# Install dependencies (three-step process)
 pip install --upgrade pip
 pip install -r requirements-jetson.txt
 pip install TTS==0.22.0 --no-deps
+python3 -c "import openwakeword; openwakeword.utils.download_models()"
 
 # Verify installation
 python test_tts.py
+python test_wake_word.py basic 30
 python test_audio.py
 python conversation_prototype.py
 ```
