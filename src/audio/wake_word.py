@@ -25,6 +25,52 @@ import pyaudio
 from src.core.config import Config
 
 
+# Common sample rates to try (in order of preference)
+COMMON_SAMPLE_RATES = [16000, 48000, 44100, 32000, 24000, 22050, 8000]
+
+
+def find_supported_sample_rate(audio: pyaudio.PyAudio, device_index: Optional[int] = None) -> tuple:
+    """
+    Find a supported sample rate for the device
+
+    Args:
+        audio: PyAudio instance
+        device_index: Optional device index (None = default)
+
+    Returns:
+        (sample_rate, chunk_size) tuple
+
+    Raises:
+        Exception if no supported rate found
+    """
+    target_rate = 16000  # OpenWakeWord required rate
+
+    for rate in COMMON_SAMPLE_RATES:
+        try:
+            # Calculate chunk size for 80ms at this rate
+            chunk_size = int(rate * 0.08)
+
+            # Try to open stream
+            stream_kwargs = {
+                'format': pyaudio.paInt16,
+                'channels': 1,
+                'rate': rate,
+                'input': True,
+                'frames_per_buffer': chunk_size
+            }
+            if device_index is not None:
+                stream_kwargs['input_device_index'] = device_index
+
+            test_stream = audio.open(**stream_kwargs)
+            test_stream.close()
+
+            return rate, chunk_size
+        except Exception:
+            continue
+
+    raise Exception("No supported sample rate found for device")
+
+
 class WakeWordType(Enum):
     """Wake word detection types"""
     START = "start"  # Trigger to begin listening
@@ -87,9 +133,11 @@ class WakeWordDetector:
         self.running = False
         self.detection_count = {"start": 0, "stop": 0}
 
-        # Audio configuration (OpenWakeWord expects 16kHz, mono)
-        self.sample_rate = 16000
-        self.chunk_size = 1280  # 80ms chunks (recommended by OpenWakeWord)
+        # Audio configuration
+        self.target_sample_rate = 16000  # OpenWakeWord required rate
+        self.device_sample_rate = None  # Will be detected on start()
+        self.chunk_size = None  # Will be calculated based on device rate
+        self.downsample_ratio = 1  # Will be calculated if needed
 
         # Build model list
         model_list = [start_model] if start_model else []
@@ -133,21 +181,39 @@ class WakeWordDetector:
             # Initialize audio stream
             self.audio = pyaudio.PyAudio()
 
-            # Open audio stream with optional device selection
+            # Auto-detect supported sample rate
+            try:
+                self.device_sample_rate, self.chunk_size = find_supported_sample_rate(
+                    self.audio, self.audio_device_index
+                )
+            except Exception as e:
+                self.audio.terminate()
+                raise Exception(f"Failed to find supported sample rate: {e}")
+
+            # Calculate downsampling ratio if needed
+            self.downsample_ratio = (
+                self.device_sample_rate // self.target_sample_rate
+                if self.device_sample_rate != self.target_sample_rate
+                else 1
+            )
+
+            # Get device name for logging
+            if self.audio_device_index is not None:
+                device_info = self.audio.get_device_info_by_index(self.audio_device_index)
+                device_name = device_info['name']
+            else:
+                device_name = self.audio.get_default_input_device_info()['name']
+
+            # Open audio stream
             stream_kwargs = {
-                'rate': self.sample_rate,
+                'rate': self.device_sample_rate,
                 'channels': 1,
                 'format': pyaudio.paInt16,
                 'input': True,
                 'frames_per_buffer': self.chunk_size
             }
-
             if self.audio_device_index is not None:
                 stream_kwargs['input_device_index'] = self.audio_device_index
-                device_info = self.audio.get_device_info_by_index(self.audio_device_index)
-                device_name = device_info['name']
-            else:
-                device_name = self.audio.get_default_input_device_info()['name']
 
             self.stream = self.audio.open(**stream_kwargs)
 
@@ -159,7 +225,11 @@ class WakeWordDetector:
                 print(f" or '{self.stop_model}'...")
             else:
                 print("...")
-            print(f"   Sample rate: {self.sample_rate} Hz")
+            print(f"   Sample rate: {self.device_sample_rate} Hz", end="")
+            if self.downsample_ratio > 1:
+                print(f" (downsampled to {self.target_sample_rate} Hz)")
+            else:
+                print()
             print(f"   Chunk size: {self.chunk_size} samples")
 
         except Exception as e:
@@ -222,8 +292,14 @@ class WakeWordDetector:
                 # Convert to numpy array (OpenWakeWord expects int16)
                 audio_array = np.frombuffer(audio_data, dtype=np.int16)
 
+                # Downsample to 16kHz if necessary
+                if self.downsample_ratio > 1:
+                    audio_array_16k = audio_array[::self.downsample_ratio]
+                else:
+                    audio_array_16k = audio_array
+
                 # Process with OpenWakeWord
-                predictions = self.oww_model.predict(audio_array)
+                predictions = self.oww_model.predict(audio_array_16k)
 
                 # Check START model
                 if self.start_model in predictions:
@@ -282,8 +358,14 @@ class WakeWordDetector:
                 # Convert to numpy array (OpenWakeWord expects int16)
                 audio_array = np.frombuffer(audio_data, dtype=np.int16)
 
+                # Downsample to 16kHz if necessary
+                if self.downsample_ratio > 1:
+                    audio_array_16k = audio_array[::self.downsample_ratio]
+                else:
+                    audio_array_16k = audio_array
+
                 # Process with OpenWakeWord
-                predictions = self.oww_model.predict(audio_array)
+                predictions = self.oww_model.predict(audio_array_16k)
 
                 # Check START model
                 if self.start_model in predictions:
