@@ -9,9 +9,11 @@ import subprocess
 import glob
 from uuid import uuid4
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import soundfile as sf
+import pyaudio
 
 from src.core.config import Config
 
@@ -143,6 +145,151 @@ class AudioRecorder:
 
         print("✅ Recording complete")
         return trimmed_file
+
+    def record_with_vad(
+        self,
+        silence_threshold: float = 0.01,
+        silence_duration: float = 1.5,
+        min_duration: float = 0.5,
+        max_duration: float = 30.0,
+        chunk_duration: float = 0.1
+    ) -> str:
+        """
+        Record audio with Voice Activity Detection (VAD)
+        Stops recording automatically when silence is detected
+
+        Args:
+            silence_threshold: Audio level below this is considered silence (0.0-1.0)
+            silence_duration: Seconds of silence before stopping (e.g., 1.5s)
+            min_duration: Minimum recording duration in seconds
+            max_duration: Maximum recording duration in seconds (safety limit)
+            chunk_duration: Duration of each audio chunk in seconds
+
+        Returns:
+            Path to recorded audio file
+        """
+        print("\n🎤 Recording with Voice Activity Detection...")
+        print(f"   Silence threshold: {silence_threshold:.3f}")
+        print(f"   Stop after {silence_duration}s of silence")
+        print(f"   Max duration: {max_duration}s")
+
+        # Initialize PyAudio
+        audio = pyaudio.PyAudio()
+
+        # Audio configuration
+        sample_rate = Config.AUDIO_SAMPLE_RATE
+        chunk_size = int(sample_rate * chunk_duration)
+        device_index = 0  # PowerConf S3
+
+        # Open audio stream
+        try:
+            stream = audio.open(
+                format=pyaudio.paInt16,
+                channels=1,
+                rate=sample_rate,
+                input=True,
+                input_device_index=device_index,
+                frames_per_buffer=chunk_size
+            )
+        except Exception as e:
+            audio.terminate()
+            raise Exception(f"Failed to open audio stream: {e}")
+
+        # Play beep to signal recording start
+        print("🔴 [BEEP] Start speaking now...")
+        try:
+            self.play_beep()
+        except Exception as e:
+            print(f"⚠️  Beep failed: {e}")
+
+        # Recording state
+        frames = []
+        start_time = time.time()
+        silence_start = None
+        is_speaking = False
+        total_chunks = 0
+
+        try:
+            print("👂 Listening... (speak naturally, I'll stop when you're done)")
+
+            while True:
+                elapsed = time.time() - start_time
+
+                # Safety limit - stop after max_duration
+                if elapsed > max_duration:
+                    print(f"\n⏱️  Maximum duration ({max_duration}s) reached")
+                    break
+
+                # Read audio chunk
+                try:
+                    audio_data = stream.read(chunk_size, exception_on_overflow=False)
+                except Exception as e:
+                    print(f"\n⚠️  Audio read error: {e}")
+                    break
+
+                # Convert to numpy array and calculate energy level
+                audio_array = np.frombuffer(audio_data, dtype=np.int16)
+                audio_level = np.abs(audio_array).mean() / 32768.0  # Normalize to 0-1
+
+                # Store frame
+                frames.append(audio_data)
+                total_chunks += 1
+
+                # Voice Activity Detection
+                if audio_level > silence_threshold:
+                    # Speech detected
+                    if not is_speaking:
+                        is_speaking = True
+                        print("🗣️  Speech detected...")
+
+                    silence_start = None  # Reset silence timer
+
+                else:
+                    # Silence detected
+                    if is_speaking:  # Only count silence after speech started
+                        if silence_start is None:
+                            silence_start = time.time()
+                            print("🤫 Silence detected, waiting...")
+
+                        # Check if silence duration exceeded
+                        silence_elapsed = time.time() - silence_start
+                        if silence_elapsed >= silence_duration:
+                            # Check minimum duration
+                            if elapsed >= min_duration:
+                                print(f"\n✅ Recording complete ({elapsed:.1f}s)")
+                                print(f"   Detected {silence_duration}s of silence")
+                                break
+                            else:
+                                # Too short, keep recording
+                                silence_start = None
+
+                # Progress indicator (every 1 second)
+                if total_chunks % int(1.0 / chunk_duration) == 0:
+                    status = "🗣️ Speaking" if audio_level > silence_threshold else "🤫 Silence"
+                    print(f"   {elapsed:.1f}s | {status} | Level: {audio_level:.3f}", end='\r')
+
+        except KeyboardInterrupt:
+            print("\n\n⚠️  Recording interrupted by user")
+        finally:
+            # Cleanup stream
+            stream.stop_stream()
+            stream.close()
+            audio.terminate()
+
+        # Check if we have any audio
+        if not frames:
+            raise Exception("No audio recorded")
+
+        # Convert frames to numpy array
+        audio_data = np.frombuffer(b''.join(frames), dtype=np.int16)
+
+        # Save to temp file
+        temp_file = self.temp_dir / f"recording_{uuid4()}.wav"
+        sf.write(str(temp_file), audio_data, sample_rate)
+
+        print(f"\n💾 Saved recording: {len(audio_data) / sample_rate:.1f}s")
+
+        return str(temp_file)
 
     def play_beep(self):
         """Play a prominent beep sound to indicate recording start"""
