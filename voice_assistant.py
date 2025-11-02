@@ -80,6 +80,11 @@ class VoiceAssistant:
         self.recorder.cleanup_previous_instances()
         self.player = AudioPlayer()
 
+        # Store the detected sample rate from wake detector for VAD recording
+        # This avoids re-detection and reuses the known working rate
+        self.detected_sample_rate = self.wake_detector.device_sample_rate
+        print(f"   Using sample rate: {self.detected_sample_rate} Hz (from wake detector)")
+
         # Load AI models
         print("\n📦 Loading AI models...")
         self.transcription = TranscriptionService()
@@ -114,11 +119,14 @@ class VoiceAssistant:
 
             # 1. Record audio with Voice Activity Detection (VAD)
             # Stops automatically when user stops speaking
+            # Use the sample rate detected by wake word detector to avoid re-detection
             audio_file = self.recorder.record_with_vad(
                 silence_threshold=0.01,   # Audio level below this = silence
                 silence_duration=3.0,     # Stop after 3.0s of silence
                 min_duration=0.5,         # Minimum 0.5s recording
-                max_duration=30.0         # Maximum 30s (safety limit)
+                max_duration=30.0,        # Maximum 30s (safety limit)
+                sample_rate=self.detected_sample_rate,  # Reuse known working rate
+                device_index=0            # PowerConf S3
             )
 
             # 2. Transcribe with Whisper
