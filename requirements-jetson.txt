@@ -24,7 +24,9 @@ ollama>=0.1.6  # Local LLM client
 TTS>=0.21.0  # Coqui TTS (VITS model for high-quality speech)
 
 # Wake Word Detection (Phase 2)
-# pvporcupine==3.0.0  # Uncomment when implementing wake word
+openwakeword>=0.5.0  # Open-source wake word detection (TFLite-based)
+onnxruntime>=1.16.0  # Required for OpenWakeWord optimized inference
+tflite-runtime>=2.14.0  # TensorFlow Lite runtime for edge devices
 
 # Audio Processing
 pyaudio>=0.2.11  # Audio I/O
