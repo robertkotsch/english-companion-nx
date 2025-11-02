@@ -10,9 +10,13 @@ import numpy as np
 import pyaudio
 from openwakeword.model import Model
 
-# Audio configuration (must match OpenWakeWord requirements)
-SAMPLE_RATE = 16000
-CHUNK_SIZE = 1280  # 80ms chunks
+# Audio configuration
+# Device native rate (PowerConf S3 is 48kHz)
+DEVICE_SAMPLE_RATE = 48000
+# OpenWakeWord required rate
+TARGET_SAMPLE_RATE = 16000
+# Chunk size for 80ms at 48kHz
+CHUNK_SIZE = 3840  # 80ms at 48kHz
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 
@@ -30,8 +34,9 @@ def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
     print("=" * 60)
     print(f"Model: {model_name}")
     print(f"Duration: {duration} seconds")
-    print(f"Sample rate: {SAMPLE_RATE} Hz")
-    print(f"Chunk size: {CHUNK_SIZE} samples ({CHUNK_SIZE/SAMPLE_RATE*1000:.1f}ms)")
+    print(f"Device sample rate: {DEVICE_SAMPLE_RATE} Hz")
+    print(f"Target sample rate: {TARGET_SAMPLE_RATE} Hz (OpenWakeWord)")
+    print(f"Chunk size: {CHUNK_SIZE} samples ({CHUNK_SIZE/DEVICE_SAMPLE_RATE*1000:.1f}ms)")
     print("=" * 60)
     print()
 
@@ -59,7 +64,7 @@ def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
             stream = audio.open(
                 format=FORMAT,
                 channels=CHANNELS,
-                rate=SAMPLE_RATE,
+                rate=DEVICE_SAMPLE_RATE,
                 input=True,
                 input_device_index=device_index,
                 frames_per_buffer=CHUNK_SIZE
@@ -71,7 +76,7 @@ def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
             stream = audio.open(
                 format=FORMAT,
                 channels=CHANNELS,
-                rate=SAMPLE_RATE,
+                rate=DEVICE_SAMPLE_RATE,
                 input=True,
                 frames_per_buffer=CHUNK_SIZE
             )
@@ -96,15 +101,18 @@ def debug_wake_word(duration=30, model_name="hey_jarvis", device_index=None):
 
     try:
         while time.time() - start_time < duration:
-            # Read audio chunk
+            # Read audio chunk (at 48kHz)
             audio_data = stream.read(CHUNK_SIZE, exception_on_overflow=False)
 
-            # Convert to numpy array (required by OpenWakeWord)
-            audio_array = np.frombuffer(audio_data, dtype=np.int16)
-            audio_level = np.abs(audio_array).mean() / 32768.0  # Normalize to 0-1
+            # Convert to numpy array
+            audio_array_48k = np.frombuffer(audio_data, dtype=np.int16)
+            audio_level = np.abs(audio_array_48k).mean() / 32768.0  # Normalize to 0-1
 
-            # Get predictions from OpenWakeWord (requires numpy array)
-            prediction = oww_model.predict(audio_array)
+            # Downsample from 48kHz to 16kHz (3:1 ratio using decimation)
+            audio_array_16k = audio_array_48k[::3]  # Take every 3rd sample
+
+            # Get predictions from OpenWakeWord (requires 16kHz int16 numpy array)
+            prediction = oww_model.predict(audio_array_16k)
 
             # Get confidence score for the target model
             confidence = prediction.get(model_name, 0.0)
