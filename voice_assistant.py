@@ -134,8 +134,12 @@ class VoiceAssistant:
             user_message = self.transcription.transcribe(audio_file)
             self.recorder.cleanup_file(audio_file)
 
-            if not user_message:
-                print("⚠️  No speech detected. Say 'hey jarvis' to try again.\n")
+            # Filter out Whisper hallucinations (common words it outputs during silence)
+            if not user_message or self._is_whisper_hallucination(user_message):
+                if user_message:
+                    print(f"⚠️  Detected hallucination: '{user_message}' (ignoring)\n")
+                else:
+                    print("⚠️  No speech detected.\n")
                 return False
 
             print(f"👤 You: {user_message}")
@@ -183,6 +187,44 @@ class VoiceAssistant:
             import traceback
             traceback.print_exc()
             return False
+
+    def _is_whisper_hallucination(self, text: str) -> bool:
+        """
+        Check if transcribed text is a common Whisper hallucination
+
+        Whisper often outputs these words during silence or very quiet audio.
+
+        Args:
+            text: Transcribed text to check
+
+        Returns:
+            True if text is likely a hallucination, False otherwise
+        """
+        # Normalize text: lowercase, strip whitespace and punctuation
+        normalized = text.lower().strip().strip('.,!?;:')
+
+        # Common Whisper hallucinations during silence
+        hallucinations = {
+            'you',
+            'thank you',
+            'thanks',
+            'okay',
+            'ok',
+            'yeah',
+            'yes',
+            'no',
+            'um',
+            'uh',
+            'hmm',
+            'ah',
+            '',  # Empty string
+        }
+
+        # Also check for very short transcriptions (likely noise)
+        if len(normalized) <= 2:
+            return True
+
+        return normalized in hallucinations
 
     def greet_user(self):
         """
