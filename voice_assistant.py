@@ -230,27 +230,50 @@ class VoiceAssistant:
         """
         Generate and speak a greeting when session starts
         """
+        greeting = None
+
         try:
             # Generate greeting from LLM
             print("💭 Generating greeting...")
             greeting_prompt = "Greet me briefly and enthusiastically to start our conversation. Keep it very short (1-2 sentences max)."
             greeting = self.conversation.generate_response(greeting_prompt)
 
-            # Clear this from conversation history (it's just a greeting, not real conversation)
-            # Remove the last exchange (greeting prompt and response)
-            if len(self.conversation.context) >= 2:
-                self.conversation.context = self.conversation.context[:-2]
+            if not greeting:
+                print("⚠️  LLM returned empty greeting, using default")
+                greeting = "Hey! I'm ready to chat!"
 
+            # Display greeting
             print(f"🤖 Assistant: {greeting}\n")
 
-            # Synthesize and play greeting
+        except Exception as e:
+            print(f"⚠️  Greeting generation failed: {e}")
+            greeting = "Hey! I'm ready to chat!"
+            print(f"🤖 Assistant: {greeting}\n")
+
+        # Now synthesize and play (separate try block to show specific errors)
+        try:
+            print("🔊 Synthesizing greeting...")
             tts_file = self.synthesis.synthesize(greeting)
+            print("📢 Playing greeting...")
             self.player.play(tts_file)
             self.synthesis.cleanup_file(tts_file)
+            print("✅ Greeting complete\n")
 
         except Exception as e:
-            print(f"⚠️  Greeting failed: {e}")
-            # Non-critical - continue session even if greeting fails
+            print(f"⚠️  Greeting TTS/playback failed: {e}")
+            print("   (Continuing session anyway)\n")
+
+        finally:
+            # Clear greeting from conversation history AFTER everything completes
+            # Remove the last exchange (greeting prompt and response)
+            try:
+                if len(self.conversation.context) >= 2:
+                    # Check if last messages are the greeting
+                    if "greet" in str(self.conversation.context[-2]).lower():
+                        self.conversation.context = self.conversation.context[:-2]
+                        print("🧹 Cleared greeting from conversation history")
+            except Exception as e:
+                print(f"⚠️  Failed to clear greeting from context: {e}")
 
     def run_conversation_session(self, idle_timeout: float = 30.0):
         """
