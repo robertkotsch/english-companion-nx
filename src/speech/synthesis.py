@@ -3,6 +3,7 @@ Speech synthesis module for English Companion NX
 Handles text-to-speech using Coqui TTS
 """
 
+import re
 import time
 from pathlib import Path
 from uuid import uuid4
@@ -13,6 +14,64 @@ import torch
 from TTS.api import TTS
 
 from src.core.config import Config
+
+
+def strip_markdown(text: str) -> str:
+    """
+    Strip markdown formatting from text for TTS
+
+    Removes:
+    - Bold (**text** or __text__)
+    - Italic (*text* or _text_)
+    - Bullet points (* item)
+    - Numbered lists (1. item)
+    - Headers (# Header)
+    - Code blocks (```code```)
+    - Inline code (`code`)
+    - Links ([text](url))
+    - Strikethrough (~~text~~)
+
+    Args:
+        text: Text with markdown formatting
+
+    Returns:
+        Plain text suitable for TTS
+    """
+    # Remove code blocks first (multiline)
+    text = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
+
+    # Remove inline code
+    text = re.sub(r'`([^`]+)`', r'\1', text)
+
+    # Remove links but keep link text
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+
+    # Remove bold/italic (order matters - do bold first)
+    text = re.sub(r'\*\*\*([^\*]+)\*\*\*', r'\1', text)  # Bold+italic
+    text = re.sub(r'___([^_]+)___', r'\1', text)
+    text = re.sub(r'\*\*([^\*]+)\*\*', r'\1', text)  # Bold
+    text = re.sub(r'__([^_]+)__', r'\1', text)
+    text = re.sub(r'\*([^\*]+)\*', r'\1', text)  # Italic
+    text = re.sub(r'_([^_]+)_', r'\1', text)
+
+    # Remove strikethrough
+    text = re.sub(r'~~([^~]+)~~', r'\1', text)
+
+    # Remove headers (# ## ###)
+    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+
+    # Remove bullet points at start of lines
+    text = re.sub(r'^\s*[\*\-\+]\s+', '', text, flags=re.MULTILINE)
+
+    # Remove numbered lists at start of lines
+    text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE)
+
+    # Clean up extra whitespace
+    text = re.sub(r'\n\s+', '\n', text)  # Remove leading spaces after newlines
+    text = re.sub(r'\n{3,}', '\n\n', text)  # Max 2 newlines in a row
+    text = text.strip()
+
+    return text
 
 
 class SynthesisService:
@@ -39,7 +98,7 @@ class SynthesisService:
         Synthesize speech from text
 
         Args:
-            text: Text to synthesize
+            text: Text to synthesize (markdown will be stripped automatically)
 
         Returns:
             Path to synthesized audio file
@@ -47,11 +106,14 @@ class SynthesisService:
         print("🎙️  Synthesizing speech...")
         start_time = time.time()
 
+        # Strip markdown formatting before TTS
+        clean_text = strip_markdown(text)
+
         # Generate temp file path
         temp_file = self.temp_dir / f"tts_{uuid4()}.wav"
 
         # Synthesize
-        self.tts.tts_to_file(text=text, file_path=str(temp_file))
+        self.tts.tts_to_file(text=clean_text, file_path=str(temp_file))
 
         # Add silence padding to prevent clipping
         audio_data, sample_rate = sf.read(str(temp_file))

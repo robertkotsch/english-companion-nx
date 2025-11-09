@@ -199,6 +199,49 @@ Or for longer responses:
 "Provide detailed, thorough responses with examples. Take your time explaining concepts."
 ```
 
+### 2.5 TTS Markdown Handling
+
+**Issue:** LLMs often generate markdown formatting in responses (bold, bullets, etc.)
+**Solution:** Automatic markdown stripping before TTS (built-in as of latest version)
+
+**Example problem:**
+```
+LLM output: "* I like reading books **that** interest me..."
+Without stripping: TTS says "asterisk I like reading books asterisk asterisk that..."
+With stripping: TTS says "I like reading books that interest me"
+```
+
+**What gets stripped automatically:**
+- Bold: `**text**` or `__text__` → `text`
+- Italic: `*text*` or `_text_` → `text`
+- Bullet points: `* item` → `item`
+- Numbered lists: `1. item` → `item`
+- Headers: `# Header` → `Header`
+- Code: `` `code` `` → `code`
+- Links: `[text](url)` → `text`
+- Strikethrough: `~~text~~` → `text`
+
+**Location:** `src/speech/synthesis.py` - `strip_markdown()` function
+
+**Testing:** Run `python test_markdown_stripping.py` to verify stripping works correctly
+
+**If you want to disable it (not recommended):**
+```python
+# Edit src/speech/synthesis.py, line 109
+# Comment out markdown stripping:
+# clean_text = strip_markdown(text)
+clean_text = text  # Use raw text with markdown
+```
+
+**Adjusting the LLM to reduce markdown:**
+If you want the LLM to generate less markdown in the first place, add to your system prompt:
+```python
+system_prompt = """...
+Important: Respond in plain text without markdown formatting.
+Don't use asterisks for bold/italic, bullets, or other formatting symbols.
+"""
+```
+
 ---
 
 ## 3. Audio Settings
