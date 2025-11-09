@@ -43,6 +43,9 @@ class Config:
     WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
     TTS_MODEL = os.getenv("TTS_MODEL", "tts_models/en/ljspeech/vits")
 
+    # Personality settings
+    PERSONALITY_PROFILE = os.getenv("PERSONALITY_PROFILE", "casual_friend")
+
     # Performance settings
     USE_GPU = os.getenv("USE_GPU", "true").lower() == "true"
 

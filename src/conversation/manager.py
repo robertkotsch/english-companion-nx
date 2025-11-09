@@ -4,6 +4,7 @@ Manages conversation context, history, and system prompts
 """
 
 from typing import List, Dict, Optional
+from pathlib import Path
 from src.core.config import Config
 from src.conversation.llm_client import OllamaClient
 
@@ -11,7 +12,8 @@ from src.conversation.llm_client import OllamaClient
 class ConversationManager:
     """Manages conversation state and context"""
 
-    SYSTEM_PROMPT = """You are a friendly, patient English conversation partner for an adult learner.
+    # Fallback system prompt if personality file not found
+    DEFAULT_SYSTEM_PROMPT = """You are a friendly, patient English conversation partner for an adult learner.
 
 Your primary goal is to have genuine, engaging conversations. The user is practicing English and wants someone to talk to regularly.
 
@@ -40,10 +42,36 @@ Remember: You're a companion first, teacher second. Keep it conversational!"""
         self.context_size = context_size or Config.CONVERSATION_CONTEXT_SIZE
         self.llm_client = OllamaClient()
 
+        # Load personality prompt from file
+        system_prompt = self._load_personality()
+
         # Initialize conversation history with system prompt
         self.history: List[Dict[str, str]] = [
-            {"role": "system", "content": self.SYSTEM_PROMPT}
+            {"role": "system", "content": system_prompt}
         ]
+
+    def _load_personality(self) -> str:
+        """
+        Load personality prompt from file based on config
+
+        Returns:
+            System prompt text
+        """
+        # Get project root (3 levels up from this file)
+        project_root = Path(__file__).parent.parent.parent
+        personality_file = project_root / "personalities" / f"{Config.PERSONALITY_PROFILE}.txt"
+
+        try:
+            if personality_file.exists():
+                return personality_file.read_text().strip()
+            else:
+                print(f"Warning: Personality file not found: {personality_file}")
+                print(f"Using default personality prompt")
+                return self.DEFAULT_SYSTEM_PROMPT
+        except Exception as e:
+            print(f"Error loading personality file: {e}")
+            print(f"Using default personality prompt")
+            return self.DEFAULT_SYSTEM_PROMPT
 
     def add_user_message(self, message: str):
         """Add user message to history"""

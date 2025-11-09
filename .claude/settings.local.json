@@ -11,7 +11,8 @@
       "Bash(python3:*)",
       "WebSearch",
       "WebFetch(domain:picovoice.ai)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
