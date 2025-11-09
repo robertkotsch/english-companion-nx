@@ -22,6 +22,7 @@ Press Ctrl+C to exit.
 import time
 import torch
 from pathlib import Path
+from typing import Optional
 
 from src.core.config import Config
 from src.core.memory import MemoryMonitor
@@ -43,7 +44,8 @@ class VoiceAssistant:
         stop_word_model: str = "alexa",
         wake_word_threshold: float = 0.5,
         stop_word_threshold: float = 0.5,
-        audio_device_index: int = 0
+        audio_device_index: Optional[int] = None,
+        audio_device_name: Optional[str] = None
     ):
         """
         Initialize voice assistant
@@ -53,7 +55,9 @@ class VoiceAssistant:
             stop_word_model: Stop word model name (default: "alexa")
             wake_word_threshold: Detection threshold 0.0-1.0 (default: 0.5)
             stop_word_threshold: Stop word threshold 0.0-1.0 (default: 0.5)
-            audio_device_index: PyAudio device index (default: 0 for PowerConf S3)
+            audio_device_index: PyAudio device index (None = auto-detect/default)
+            audio_device_name: Device name pattern to search for (e.g., "PowerConf")
+                               If provided, overrides audio_device_index
         """
         print("🚀 English Companion NX - Voice Assistant (Phase 2B)")
         print("=" * 60)
@@ -71,7 +75,8 @@ class VoiceAssistant:
             stop_model=stop_word_model,
             start_threshold=wake_word_threshold,
             stop_threshold=stop_word_threshold,
-            audio_device_index=audio_device_index
+            audio_device_index=audio_device_index,
+            audio_device_name=audio_device_name
         )
 
         # Initialize audio components (separate from wake word detection)
@@ -485,7 +490,8 @@ def main():
     stop_word_model = "alexa"
     wake_threshold = 0.5
     stop_threshold = 0.5
-    device_index = 0
+    device_index = None
+    device_name = Config.AUDIO_DEVICE_NAME if hasattr(Config, 'AUDIO_DEVICE_NAME') else None
 
     if len(sys.argv) > 1 and sys.argv[1] in ["--help", "-h"]:
         print("Usage: python voice_assistant.py [WAKE_MODEL] [STOP_MODEL] [WAKE_THRESH] [STOP_THRESH] [DEVICE]")
@@ -495,14 +501,21 @@ def main():
         print("  STOP_MODEL  - Stop word model (default: alexa)")
         print("  WAKE_THRESH - Wake detection threshold 0.0-1.0 (default: 0.5)")
         print("  STOP_THRESH - Stop detection threshold 0.0-1.0 (default: 0.5)")
-        print("  DEVICE      - Audio device index (default: 0)")
+        print("  DEVICE      - Audio device index or name pattern (default: from .env or auto-detect)")
         print()
         print("Available models: hey_jarvis, alexa, hey_mycroft, timer")
         print()
         print("Examples:")
         print("  python voice_assistant.py")
-        print("  python voice_assistant.py hey_jarvis alexa 0.5 0.5 0")
-        print("  python voice_assistant.py hey_jarvis timer 0.5 0.6 0")
+        print("  python voice_assistant.py hey_jarvis alexa 0.5 0.5 PowerConf")
+        print("  python voice_assistant.py hey_jarvis timer 0.5 0.6 24")
+        print()
+        print("Device can be:")
+        print("  - Device name pattern (e.g., 'PowerConf', 'Anker') - auto-finds device")
+        print("  - Device index number (e.g., '24') - uses specific PyAudio index")
+        print("  - Omitted - uses AUDIO_DEVICE_NAME from .env or system default")
+        print()
+        print("Run 'python debug_audio_devices.py' to see available devices")
         print()
         print("How it works:")
         print("  1. Say wake word ('hey jarvis') to start conversation session")
@@ -519,7 +532,13 @@ def main():
     if len(sys.argv) > 4:
         stop_threshold = float(sys.argv[4])
     if len(sys.argv) > 5:
-        device_index = int(sys.argv[5])
+        # Try to parse as integer (device index), otherwise treat as device name
+        try:
+            device_index = int(sys.argv[5])
+            device_name = None
+        except ValueError:
+            device_name = sys.argv[5]
+            device_index = None
 
     try:
         assistant = VoiceAssistant(
@@ -527,7 +546,8 @@ def main():
             stop_word_model=stop_word_model,
             wake_word_threshold=wake_threshold,
             stop_word_threshold=stop_threshold,
-            audio_device_index=device_index
+            audio_device_index=device_index,
+            audio_device_name=device_name
         )
         assistant.run()
     except KeyboardInterrupt:

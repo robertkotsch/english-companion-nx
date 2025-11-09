@@ -22,6 +22,10 @@ class Config:
     AUDIO_SAMPLE_RATE = int(os.getenv("AUDIO_SAMPLE_RATE", "16000"))
     AUDIO_RECORD_SECONDS = int(os.getenv("AUDIO_RECORD_SECONDS", "5"))
 
+    # Audio device selection (PyAudio for wake word detection)
+    # Use device name pattern for robust detection across reboots/USB reconnections
+    AUDIO_DEVICE_NAME = os.getenv("AUDIO_DEVICE_NAME", "PowerConf")
+
     # ALSA input device for Anker PowerConf S3
     AUDIO_INPUT_DEVICE = os.getenv("AUDIO_INPUT_DEVICE", "plughw:0,0")
 

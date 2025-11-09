@@ -71,6 +71,32 @@ def find_supported_sample_rate(audio: pyaudio.PyAudio, device_index: Optional[in
     raise Exception("No supported sample rate found for device")
 
 
+def find_device_by_name(audio: pyaudio.PyAudio, device_name_pattern: str) -> Optional[int]:
+    """
+    Find audio input device by name pattern
+
+    Args:
+        audio: PyAudio instance
+        device_name_pattern: Name pattern to search for (case-insensitive)
+
+    Returns:
+        Device index if found, None otherwise
+    """
+    device_name_pattern = device_name_pattern.lower()
+
+    for i in range(audio.get_device_count()):
+        try:
+            info = audio.get_device_info_by_index(i)
+            if info['maxInputChannels'] > 0:
+                device_name = info['name'].lower()
+                if device_name_pattern in device_name:
+                    return i
+        except Exception:
+            continue
+
+    return None
+
+
 class WakeWordType(Enum):
     """Wake word detection types"""
     START = "start"  # Trigger to begin listening
@@ -96,7 +122,8 @@ class WakeWordDetector:
         start_callback: Optional[Callable] = None,
         stop_callback: Optional[Callable] = None,
         custom_model_paths: Optional[List[str]] = None,
-        audio_device_index: Optional[int] = None
+        audio_device_index: Optional[int] = None,
+        audio_device_name: Optional[str] = None
     ):
         """
         Initialize wake word detector
@@ -109,7 +136,9 @@ class WakeWordDetector:
             start_callback: Optional callback when START detected
             stop_callback: Optional callback when STOP detected
             custom_model_paths: List of paths to custom .tflite or .onnx models
-            audio_device_index: PyAudio device index (None = use default)
+            audio_device_index: PyAudio device index (None = auto-detect or use default)
+            audio_device_name: Device name pattern to search for (e.g., "PowerConf")
+                               If provided, overrides audio_device_index
         """
         if not OPENWAKEWORD_AVAILABLE:
             raise ImportError("openwakeword not installed. Install with: pip install openwakeword")
@@ -121,6 +150,7 @@ class WakeWordDetector:
         self.start_callback = start_callback
         self.stop_callback = stop_callback
         self.audio_device_index = audio_device_index
+        self.audio_device_name = audio_device_name
 
         # OpenWakeWord model
         self.oww_model: Optional[OpenWakeWordModel] = None
@@ -183,6 +213,19 @@ class WakeWordDetector:
         try:
             # Initialize audio stream
             self.audio = pyaudio.PyAudio()
+
+            # Auto-detect device by name if provided
+            if self.audio_device_name:
+                detected_index = find_device_by_name(self.audio, self.audio_device_name)
+                if detected_index is not None:
+                    self.audio_device_index = detected_index
+                    print(f"✅ Found audio device '{self.audio_device_name}' at index {detected_index}")
+                else:
+                    self.audio.terminate()
+                    raise Exception(
+                        f"Audio device matching '{self.audio_device_name}' not found. "
+                        f"Run debug_audio_devices.py to see available devices."
+                    )
 
             # Auto-detect supported sample rate
             try:
