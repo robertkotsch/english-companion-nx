@@ -21,10 +21,16 @@ venv/
 logs/*.log
 *.log
 
-# Data
+# Data (conversation logs and databases)
+# Prevent accidental commit of private conversation data
 data/conversations.jsonl
 data/conversations.db
 data/backups/
+companion-data/
+conversations*.jsonl
+conversations*.db
+**/conversations.jsonl
+**/companion-data/
 
 # Models (download on Jetson)
 models/*.pt
