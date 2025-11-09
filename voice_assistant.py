@@ -85,10 +85,10 @@ class VoiceAssistant:
         self.recorder.cleanup_previous_instances()
         self.player = AudioPlayer()
 
-        # Store the detected sample rate from wake detector for VAD recording
-        # This avoids re-detection and reuses the known working rate
-        self.detected_sample_rate = self.wake_detector.device_sample_rate
-        print(f"   Using sample rate: {self.detected_sample_rate} Hz (from wake detector)")
+        # Store the audio device index for VAD recording
+        # This will be updated after wake detector starts if device name was used
+        self.audio_device_index = audio_device_index
+        self.audio_device_name = audio_device_name
 
         # Load AI models
         print("\n📦 Loading AI models...")
@@ -131,7 +131,7 @@ class VoiceAssistant:
                 min_duration=0.5,         # Minimum 0.5s recording
                 max_duration=30.0,        # Maximum 30s (safety limit)
                 sample_rate=self.detected_sample_rate,  # Reuse known working rate
-                device_index=0            # PowerConf S3
+                device_index=self.audio_device_index  # Use detected device index
             )
 
             # 2. Transcribe with Whisper
@@ -423,7 +423,14 @@ class VoiceAssistant:
             # Start wake word detector
             self.wake_detector.start()
 
-            print("🎧 Listening for wake word...\n")
+            # Store the detected device index and sample rate for VAD recording
+            # (device index may have been auto-detected by name)
+            self.audio_device_index = self.wake_detector.audio_device_index
+            self.detected_sample_rate = self.wake_detector.device_sample_rate
+            print(f"   Audio device index: {self.audio_device_index}")
+            print(f"   Sample rate: {self.detected_sample_rate} Hz")
+
+            print("\n🎧 Listening for wake word...\n")
 
             while True:
                 # Listen for wake word (blocking)

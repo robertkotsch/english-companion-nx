@@ -154,7 +154,7 @@ class AudioRecorder:
         max_duration: float = 30.0,
         chunk_duration: float = 0.1,
         sample_rate: Optional[int] = None,
-        device_index: int = 0
+        device_index: Optional[int] = None
     ) -> str:
         """
         Record audio with Voice Activity Detection (VAD)
@@ -167,7 +167,7 @@ class AudioRecorder:
             max_duration: Maximum recording duration in seconds (safety limit)
             chunk_duration: Duration of each audio chunk in seconds
             sample_rate: Optional sample rate (Hz). If None, will auto-detect.
-            device_index: Audio device index (default: 0 for PowerConf S3)
+            device_index: Audio device index (None = system default)
 
         Returns:
             Path to recorded audio file
