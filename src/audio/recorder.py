@@ -308,6 +308,7 @@ class AudioRecorder:
 
         except KeyboardInterrupt:
             print("\n\n⚠️  Recording interrupted by user")
+            raise  # Re-raise to propagate upward
         finally:
             # Cleanup stream
             stream.stop_stream()
