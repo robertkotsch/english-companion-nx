@@ -16,13 +16,48 @@ from TTS.api import TTS
 from src.core.config import Config
 
 
-def strip_markdown(text: str) -> str:
+def convert_markdown_emphasis_to_pauses(text: str) -> str:
+    """
+    Convert markdown emphasis (bold/italic) to natural pauses for TTS
+
+    Since VITS doesn't support prosody control, we simulate emphasis by:
+    - Bold (**word**) → slight pause before word (comma)
+    - Italic (*word*) → keep as-is
+    - ALL CAPS → keep as-is (TTS naturally emphasizes)
+
+    Args:
+        text: Text with markdown formatting
+
+    Returns:
+        Text with emphasis converted to pauses
+    """
+    # Convert bold+italic to emphasized word with pause
+    text = re.sub(r'\*\*\*([^\*]+)\*\*\*', r', \1,', text)
+    text = re.sub(r'___([^_]+)___', r', \1,', text)
+
+    # Convert bold to word with slight pause (comma before)
+    text = re.sub(r'\*\*([^\*]+)\*\*', r', \1', text)
+    text = re.sub(r'__([^_]+)__', r', \1', text)
+
+    # Remove italic markers (keep word unchanged)
+    text = re.sub(r'\*([^\*]+)\*', r'\1', text)
+    text = re.sub(r'_([^_]+)_', r'\1', text)
+
+    # Clean up double commas and spaces
+    text = re.sub(r',\s*,', ',', text)
+    text = re.sub(r'\s+,', ',', text)
+    text = re.sub(r',\s+', ', ', text)
+
+    return text
+
+
+def strip_markdown(text: str, preserve_emphasis: bool = True) -> str:
     """
     Strip markdown formatting from text for TTS
 
     Removes:
-    - Bold (**text** or __text__)
-    - Italic (*text* or _text_)
+    - Bold (**text** or __text__) - optionally converts to pauses
+    - Italic (*text* or _text_) - removes markers
     - Bullet points (* item)
     - Numbered lists (1. item)
     - Headers (# Header)
@@ -33,6 +68,7 @@ def strip_markdown(text: str) -> str:
 
     Args:
         text: Text with markdown formatting
+        preserve_emphasis: If True, convert bold to pauses; if False, remove completely
 
     Returns:
         Plain text suitable for TTS
@@ -46,13 +82,17 @@ def strip_markdown(text: str) -> str:
     # Remove links but keep link text
     text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
 
-    # Remove bold/italic (order matters - do bold first)
-    text = re.sub(r'\*\*\*([^\*]+)\*\*\*', r'\1', text)  # Bold+italic
-    text = re.sub(r'___([^_]+)___', r'\1', text)
-    text = re.sub(r'\*\*([^\*]+)\*\*', r'\1', text)  # Bold
-    text = re.sub(r'__([^_]+)__', r'\1', text)
-    text = re.sub(r'\*([^\*]+)\*', r'\1', text)  # Italic
-    text = re.sub(r'_([^_]+)_', r'\1', text)
+    # Handle bold/italic - either preserve as emphasis or remove
+    if preserve_emphasis:
+        text = convert_markdown_emphasis_to_pauses(text)
+    else:
+        # Remove bold/italic completely (order matters - do bold first)
+        text = re.sub(r'\*\*\*([^\*]+)\*\*\*', r'\1', text)  # Bold+italic
+        text = re.sub(r'___([^_]+)___', r'\1', text)
+        text = re.sub(r'\*\*([^\*]+)\*\*', r'\1', text)  # Bold
+        text = re.sub(r'__([^_]+)__', r'\1', text)
+        text = re.sub(r'\*([^\*]+)\*', r'\1', text)  # Italic
+        text = re.sub(r'_([^_]+)_', r'\1', text)
 
     # Remove strikethrough
     text = re.sub(r'~~([^~]+)~~', r'\1', text)
@@ -107,7 +147,8 @@ class SynthesisService:
         start_time = time.time()
 
         # Strip markdown formatting before TTS
-        clean_text = strip_markdown(text)
+        # Optionally preserve emphasis (bold) as pauses
+        clean_text = strip_markdown(text, preserve_emphasis=Config.TTS_PRESERVE_EMPHASIS)
 
         # Generate temp file path
         temp_file = self.temp_dir / f"tts_{uuid4()}.wav"

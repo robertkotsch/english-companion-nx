@@ -47,6 +47,9 @@ class Config:
     WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
     TTS_MODEL = os.getenv("TTS_MODEL", "tts_models/en/ljspeech/vits")
 
+    # TTS settings
+    TTS_PRESERVE_EMPHASIS = os.getenv("TTS_PRESERVE_EMPHASIS", "true").lower() == "true"
+
     # Personality settings
     PERSONALITY_PROFILE = os.getenv("PERSONALITY_PROFILE", "casual_friend")
 
