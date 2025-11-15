@@ -1,0 +1,18 @@
+{
+  "cefr_target": "C1",
+  "native_language": "German",
+  "accent_preference": "American",
+  "coach_intensity": "normal",
+  "weekly_focus": "business_communication",
+  "topics": [
+    "e-learning",
+    "3D",
+    "leadership",
+    "technology",
+    "product development"
+  ],
+  "availability": {
+    "start": "09:00",
+    "end": "17:00"
+  }
+}
