@@ -58,6 +58,6 @@
 | **ScribeSparrow** 🐦 | Session Logger | Logs which blocks were done, partial completions, and daily summaries. |
 | **BoundaryBison** 🦬 | Mode & Check-in Manager | Manages coach intensity (off/soft/intense) and schedules regular goal check-ins. |
 
-[🎻 Flow plan](%F0%9F%8E%BB%20Flow%20plan%202ac60690d5608003863bd92e59a340dd.md)
+[🎻 Flow plan](🎻%20Flow%20plan.md)
 
-[🚦 Implementation Plan ](%F0%9F%9A%A6%20Implementation%20Plan%202ac60690d560801ebfdbe600640d756a.md)
+[🚦 Implementation Plan](🚦%20Implementation%20Plan.md)

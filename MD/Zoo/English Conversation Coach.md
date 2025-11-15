@@ -249,8 +249,8 @@ You get:
 
 That’s it. No actors, no complicated weekly themes, no deep pattern trends yet.
 
-[🧬 Zoo v1.0 – Final Agent Set](%F0%9F%A7%AC%20Zoo%20v1%200%20%E2%80%93%20Final%20Agent%20Set%202ac60690d56080119296f6112540d26d.md)
+[🧬 Zoo v1.0 – Final Agent Set](🧬%20Zoo%20v1%200%20–%20Final%20Agent%20Set.md)
 
-[Example Notion](Example%20Notion%202ac60690d560805f95e1f228de74a726.md)
+[Example Notion](Example%20Notion.md)
 
-[Example](Example%202ac60690d5608091a4c1dafb12ba849b.md)
+[Example 2](Example%202.md)
