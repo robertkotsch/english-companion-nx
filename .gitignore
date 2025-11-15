@@ -48,6 +48,8 @@ temp/
 *.tmp
 /tmp/companion-audio/
 
+# Archive
+.archive/
 
 domain-radar-nx.code-workspace
 english-companion-nx.code-workspace
