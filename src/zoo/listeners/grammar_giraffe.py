@@ -47,7 +47,7 @@ class GrammarGiraffe(BaseListener):
         self.llm_client = OllamaClient()
 
         # Configuration
-        self.min_severity = self.get_config_value('min_severity', 0.3)
+        self.min_severity = self.get_config_value('min_severity', 0.5)  # Increased to reduce false positives
         self.llm_temperature = self.get_config_value('llm_temperature', 0.2)
         self.categories = self.get_config_value('categories', self.GRAMMAR_CATEGORIES)
 
@@ -136,9 +136,11 @@ class GrammarGiraffe(BaseListener):
             {
                 "role": "system",
                 "content": (
-                    "You are a grammar analysis assistant. Analyze English utterances "
-                    "for grammar errors and respond ONLY with valid JSON. "
-                    "Be strict but fair - only flag actual errors, not style preferences."
+                    "You are a conservative grammar analysis assistant. Analyze English utterances "
+                    "for CLEAR, UNAMBIGUOUS grammar errors and respond ONLY with valid JSON. "
+                    "Be conservative - only flag obvious errors. Do NOT flag colloquial speech, "
+                    "questions, or statements that are grammatically acceptable. "
+                    "When in doubt, return empty array []."
                 )
             },
             {
@@ -169,20 +171,25 @@ class GrammarGiraffe(BaseListener):
         """
         categories_str = ", ".join(self.categories)
 
-        prompt = f"""Analyze this English utterance for grammar errors:
+        prompt = f"""Analyze this English utterance for ACTUAL grammar errors:
 
 "{text}"
+
+IMPORTANT: Only flag CLEAR, UNAMBIGUOUS errors. Do NOT flag:
+- Colloquial or informal speech (that's acceptable)
+- Questions or statements that are grammatically correct
+- Style preferences or minor word choices
 
 Check for errors in these categories: {categories_str}
 
 Respond with a JSON array of errors. Each error should have:
 - category: error type (articles, tense, word_order, subject_verb, prepositions, pluralization, pronouns)
-- severity: 0.0-1.0 (0.3=minor, 0.5=moderate, 0.7=significant, 1.0=critical)
+- severity: 0.0-1.0 (0.5=moderate, 0.7=significant, 0.9=critical) - Use HIGH severity only for clear errors
 - original: the problematic phrase
 - suggestion: corrected version
 - explanation: brief reason (max 10 words)
 
-If no errors found, return empty array: []
+If no CLEAR errors found, return empty array: []
 
 Example response format:
 [
