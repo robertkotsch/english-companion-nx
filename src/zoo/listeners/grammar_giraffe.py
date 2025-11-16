@@ -8,6 +8,7 @@ import json
 from typing import List, Optional, Dict, Any
 from .base import BaseListener, ListenerProcessingError
 from ..signals import Signal, create_grammar_signal
+from ..zoo_logger import get_zoo_logger
 from src.conversation.llm_client import OllamaClient
 
 
@@ -49,6 +50,9 @@ class GrammarGiraffe(BaseListener):
         self.min_severity = self.get_config_value('min_severity', 0.3)
         self.llm_temperature = self.get_config_value('llm_temperature', 0.2)
         self.categories = self.get_config_value('categories', self.GRAMMAR_CATEGORIES)
+
+        # Get logger
+        self.logger = get_zoo_logger()
 
     def process_utterance(
         self,
@@ -93,6 +97,13 @@ class GrammarGiraffe(BaseListener):
                     explanation=error.get('explanation', ''),
                 )
                 signals.append(signal)
+
+                # Log signal
+                detail = f"{error.get('category', 'unknown')}: {error.get('explanation', '')}"
+                self.logger.listener_signal(self.name, signal.type, signal.severity, detail)
+
+            if not signals:
+                self.logger.listener_no_signal(self.name)
 
             return signals
 

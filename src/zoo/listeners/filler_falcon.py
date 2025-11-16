@@ -8,6 +8,7 @@ import re
 from typing import List, Optional, Dict, Any
 from .base import BaseListener, ListenerProcessingError
 from ..signals import Signal, create_filler_signal
+from ..zoo_logger import get_zoo_logger
 
 
 class FillerFalcon(BaseListener):
@@ -50,6 +51,9 @@ class FillerFalcon(BaseListener):
         # Get threshold configuration
         self.threshold_per_min = self.get_config_value('threshold_per_min', 3.0)
         self.min_count_for_signal = self.get_config_value('min_count_for_signal', 1)
+
+        # Get logger
+        self.logger = get_zoo_logger()
 
     def process_utterance(
         self,
@@ -97,6 +101,7 @@ class FillerFalcon(BaseListener):
 
             # Emit signals only if count exceeds minimum threshold
             if total_count < self.min_count_for_signal:
+                self.logger.listener_no_signal(self.name)
                 return []
 
             # Create signals for detected fillers
@@ -118,6 +123,15 @@ class FillerFalcon(BaseListener):
             signal.data['all_fillers'] = fillers
 
             signals.append(signal)
+
+            # Log signal emission
+            filler_list = ', '.join([f['word'] for f in fillers])
+            self.logger.listener_signal(
+                self.name,
+                signal.type,
+                signal.severity,
+                f"{total_count}x ({filler_list}) @ {rate_per_min:.1f}/min"
+            )
 
             return signals
 

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any, Set
 from .base import BaseListener, ListenerProcessingError
 from ..signals import Signal, create_vocab_signal, SIGNAL_VOCAB_USED, SIGNAL_VOCAB_OPPORTUNITY
+from ..zoo_logger import get_zoo_logger
 
 
 class LexiLynx(BaseListener):
@@ -47,6 +48,9 @@ class LexiLynx(BaseListener):
         self.target_words = self._build_word_set()
         self.collocations = self._build_collocation_set()
 
+        # Get logger
+        self.logger = get_zoo_logger()
+
     def process_utterance(
         self,
         text: str,
@@ -83,6 +87,16 @@ class LexiLynx(BaseListener):
             if self.check_collocations:
                 collocation_signals = self._check_collocation_usage(text_lower)
                 signals.extend(collocation_signals)
+
+            # Log results
+            if signals:
+                words_used = [s.data['word'] for s in signals]
+                detail = f"Used: {', '.join(words_used)}"
+                for signal in signals:
+                    self.logger.listener_signal(self.name, signal.type, signal.severity,
+                                               f"{signal.data['word']} ({signal.data.get('word_type', 'unknown')})")
+            else:
+                self.logger.listener_no_signal(self.name)
 
             return signals
 

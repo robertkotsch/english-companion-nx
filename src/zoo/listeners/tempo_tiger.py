@@ -7,6 +7,7 @@ Emits signals for tempo issues like speaking too fast, too slow, or long pauses.
 from typing import List, Optional, Dict, Any
 from .base import BaseListener, ListenerProcessingError
 from ..signals import Signal, create_tempo_signal
+from ..zoo_logger import get_zoo_logger
 
 
 class TempoTiger(BaseListener):
@@ -41,6 +42,9 @@ class TempoTiger(BaseListener):
 
         # Severity scaling
         self.severity_scale = self.get_config_value('severity_scale', 1.0)
+
+        # Get logger
+        self.logger = get_zoo_logger()
 
     def process_utterance(
         self,
@@ -86,6 +90,20 @@ class TempoTiger(BaseListener):
                     text, word_count, duration_ms
                 )
                 signals.extend(tempo_signals)
+
+            # Log results
+            if signals:
+                for signal in signals:
+                    issue = signal.data['issue_type']
+                    if 'wpm' in signal.data and signal.data['wpm'] > 0:
+                        detail = f"{issue} ({signal.data['wpm']:.0f} WPM)"
+                    elif 'pause_duration_sec' in signal.data:
+                        detail = f"{issue} ({signal.data['pause_duration_sec']:.1f}s pause)"
+                    else:
+                        detail = issue
+                    self.logger.listener_signal(self.name, signal.type, signal.severity, detail)
+            else:
+                self.logger.listener_no_signal(self.name)
 
             return signals
 
