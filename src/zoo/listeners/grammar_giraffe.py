@@ -47,7 +47,7 @@ class GrammarGiraffe(BaseListener):
         self.llm_client = OllamaClient()
 
         # Configuration
-        self.min_severity = self.get_config_value('min_severity', 0.7)  # Conservative threshold for clear errors only
+        self.min_severity = self.get_config_value('min_severity', 0.6)  # Balanced threshold - catches most errors with acceptable false positive rate
         self.llm_temperature = self.get_config_value('llm_temperature', 0.2)
         self.categories = self.get_config_value('categories', self.GRAMMAR_CATEGORIES)
 
