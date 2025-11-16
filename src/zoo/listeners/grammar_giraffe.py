@@ -47,9 +47,20 @@ class GrammarGiraffe(BaseListener):
         self.llm_client = OllamaClient()
 
         # Configuration
-        self.min_severity = self.get_config_value('min_severity', 0.6)  # Balanced threshold - catches most errors with acceptable false positive rate
+        self.min_severity = self.get_config_value('min_severity', 0.6)  # Default threshold
         self.llm_temperature = self.get_config_value('llm_temperature', 0.2)
         self.categories = self.get_config_value('categories', self.GRAMMAR_CATEGORIES)
+
+        # Category-specific thresholds (more reliable categories = lower threshold)
+        self.category_thresholds = self.get_config_value('category_thresholds', {
+            'articles': 0.5,         # Articles are usually clear (a/an/the)
+            'pluralization': 0.6,    # Singular/plural is usually clear
+            'tense': 0.7,            # Tense can be subjective/contextual
+            'subject_verb': 0.75,    # High false positive rate
+            'word_order': 0.7,       # Can be stylistic
+            'prepositions': 0.7,     # Often contextual/idiomatic
+            'pronouns': 0.6,         # Usually clear
+        })
 
         # Get logger
         self.logger = get_zoo_logger()
@@ -83,9 +94,13 @@ class GrammarGiraffe(BaseListener):
             signals = []
             for error in errors:
                 severity = error.get('severity', 0.5)
+                error_category = error.get('category', 'unknown')
 
-                # Only emit signal if severity exceeds minimum
-                if severity <= self.min_severity:
+                # Get category-specific threshold, or use default
+                threshold = self.category_thresholds.get(error_category, self.min_severity)
+
+                # Only emit signal if severity exceeds category threshold
+                if severity <= threshold:
                     continue
 
                 signal = create_grammar_signal(
