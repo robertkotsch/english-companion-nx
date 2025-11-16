@@ -230,6 +230,12 @@ def main():
         action='store_true',
         help='Skip GrammarGiraffe (faster testing)'
     )
+    parser.add_argument(
+        '--grammar-model',
+        type=str,
+        default='llama3.2:3b',
+        help='Ollama model for GrammarGiraffe (default: llama3.2:3b, try: llama3.1:8b for better accuracy)'
+    )
 
     args = parser.parse_args()
 
@@ -251,8 +257,9 @@ def main():
 
     if GRAMMAR_AVAILABLE and not args.no_grammar:
         try:
-            listeners['grammar'] = GrammarGiraffe()
-            print("  ✓ All listeners ready (including GrammarGiraffe)")
+            grammar_config = {'llm_model': args.grammar_model}
+            listeners['grammar'] = GrammarGiraffe(grammar_config)
+            print(f"  ✓ All listeners ready (GrammarGiraffe using {args.grammar_model})")
         except Exception as e:
             print(f"  ⚠️  GrammarGiraffe failed to initialize: {e}")
             print("  ✓ Other listeners ready")

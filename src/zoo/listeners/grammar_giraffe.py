@@ -19,9 +19,12 @@ class GrammarGiraffe(BaseListener):
     signals with error categorization and correction suggestions.
 
     Configuration:
-        min_severity: float - Minimum severity to emit signal (default: 0.3)
+        llm_model: str - Ollama model to use (default: 'llama3.2:3b')
+            Options: 'llama3.2:3b' (fast, ~2GB), 'llama3.1:8b' (better accuracy, ~5GB)
+        min_severity: float - Default minimum severity threshold (default: 0.6)
         llm_temperature: float - LLM temperature for analysis (default: 0.2)
         categories: List[str] - Grammar categories to check (default: all)
+        category_thresholds: Dict[str, float] - Per-category severity thresholds
     """
 
     # Grammar error categories to detect
@@ -43,13 +46,14 @@ class GrammarGiraffe(BaseListener):
         """
         super().__init__(config)
 
-        # Initialize LLM client
-        self.llm_client = OllamaClient()
-
         # Configuration
+        self.llm_model = self.get_config_value('llm_model', 'llama3.2:3b')  # Default to 3b model
         self.min_severity = self.get_config_value('min_severity', 0.6)  # Default threshold
         self.llm_temperature = self.get_config_value('llm_temperature', 0.2)
         self.categories = self.get_config_value('categories', self.GRAMMAR_CATEGORIES)
+
+        # Initialize LLM client with configured model
+        self.llm_client = OllamaClient(model=self.llm_model)
 
         # Category-specific thresholds (more reliable categories = lower threshold)
         self.category_thresholds = self.get_config_value('category_thresholds', {
