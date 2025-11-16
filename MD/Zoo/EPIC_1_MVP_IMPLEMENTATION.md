@@ -421,20 +421,20 @@ class BoundaryBison:
 
 ## 4. Implementation Tasks
 
-### Phase 1.1: Foundation (Week 1)
-- [ ] Create `src/zoo/` directory structure
-- [ ] Implement `signals.py` (Signal dataclass, types)
-- [ ] Implement `BaseListener` abstract class
-- [ ] Implement DayDolphin state machine
-- [ ] Implement PersonaPanda (static profile loader)
-- [ ] Write unit tests for Signal and DayDolphin
+### Phase 1.1: Foundation (Week 1) ✅ COMPLETE
+- [x] Create `src/zoo/` directory structure
+- [x] Implement `signals.py` (Signal dataclass, types)
+- [x] Implement `BaseListener` abstract class
+- [x] Implement DayDolphin state machine
+- [x] Implement PersonaPanda (static profile loader)
+- [x] Write unit tests for Signal and DayDolphin
 
-### Phase 1.2: Listeners (Week 2)
-- [ ] Implement FillerFalcon (regex-based)
-- [ ] Implement GrammarGiraffe (LLM-based)
-- [ ] Implement TempoTiger (basic WPM + pauses)
-- [ ] Implement LexiLynx (vocab matching)
-- [ ] Write listener integration tests
+### Phase 1.2: Listeners (Week 2) ✅ COMPLETE
+- [x] Implement FillerFalcon (regex-based)
+- [x] Implement GrammarGiraffe (LLM-based)
+- [x] Implement TempoTiger (basic WPM + pauses)
+- [x] Implement LexiLynx (vocab matching)
+- [x] Write listener integration tests
 
 ### Phase 1.3: Memory & Planning (Week 2-3)
 - [ ] Implement NotionNightingale (read-only sync)

@@ -1,0 +1,49 @@
+{
+  "words": [
+    {
+      "id": "example_1",
+      "word": "leverage",
+      "type": "verb",
+      "definition": "use strategically to maximum advantage",
+      "example": "We can leverage our expertise in this area",
+      "status": "learning",
+      "added_date": "2024-12-01"
+    },
+    {
+      "id": "example_2",
+      "word": "facilitate",
+      "type": "verb",
+      "definition": "make an action or process easier",
+      "example": "This tool will facilitate communication",
+      "status": "learning",
+      "added_date": "2024-12-01"
+    },
+    {
+      "id": "example_3",
+      "word": "comprehensive",
+      "type": "adjective",
+      "definition": "complete and including everything necessary",
+      "example": "We need a comprehensive solution",
+      "status": "learning",
+      "added_date": "2024-12-01"
+    }
+  ],
+  "collocations": [
+    {
+      "id": "coll_1",
+      "phrase": "take into account",
+      "meaning": "consider something when making a decision",
+      "example": "We should take into account all factors",
+      "status": "learning",
+      "added_date": "2024-12-01"
+    },
+    {
+      "id": "coll_2",
+      "phrase": "in terms of",
+      "meaning": "regarding a particular aspect",
+      "example": "In terms of performance, this is excellent",
+      "status": "learning",
+      "added_date": "2024-12-01"
+    }
+  ]
+}

@@ -183,3 +183,4 @@ cat /sys/class/thermal/thermal_zone*/temp  # Temperature
 **Last Updated:** December 2024
 **Project Phase:** Phase 2B Complete
 **Target Hardware:** Jetson Orin NX 16GB + Anker PowerConf S3
+- mark progress on EPIC_...md files. Do not inflate them.
