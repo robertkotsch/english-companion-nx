@@ -85,7 +85,7 @@ class GrammarGiraffe(BaseListener):
                 severity = error.get('severity', 0.5)
 
                 # Only emit signal if severity exceeds minimum
-                if severity < self.min_severity:
+                if severity <= self.min_severity:
                     continue
 
                 signal = create_grammar_signal(
