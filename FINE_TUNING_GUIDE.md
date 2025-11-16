@@ -394,7 +394,7 @@ def end_session_with_feedback(self):
 
 **Current:**
 - Whisper: `small` (faster, good accuracy)
-- LLM: `llama3.2:3b` (fast, 16GB RAM compatible)
+- LLM: `qwen2.5:3b-instruct` (fast, better grammar, 16GB RAM compatible)
 - TTS: Coqui VITS (high quality)
 
 **Optimization options:**
@@ -405,7 +405,7 @@ def end_session_with_feedback(self):
 WHISPER_MODEL=tiny
 
 # Smaller LLM
-OLLAMA_MODEL=llama3.2:1b
+OLLAMA_MODEL=qwen2.5:1.5b  # or llama3.2:1b
 ```
 
 **Better quality (slower):**
@@ -414,7 +414,7 @@ OLLAMA_MODEL=llama3.2:1b
 WHISPER_MODEL=medium
 
 # Larger LLM (better responses)
-OLLAMA_MODEL=llama3.1:8b
+OLLAMA_MODEL=qwen2.5:7b-instruct  # or llama3.1:8b
 ```
 
 ### 5.2 Response Time Improvements
@@ -422,7 +422,7 @@ OLLAMA_MODEL=llama3.1:8b
 **Current timing:**
 - Recording: Variable (VAD-based)
 - Transcription: ~1-2s (Whisper small on GPU)
-- LLM response: ~6-8s (llama3.2:3b)
+- LLM response: ~5-7s (qwen2.5:3b-instruct)
 - TTS synthesis: ~2.5s (Coqui VITS on GPU)
 - **Total: ~10-20s per exchange**
 

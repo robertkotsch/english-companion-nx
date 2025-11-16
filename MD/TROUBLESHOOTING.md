@@ -230,7 +230,7 @@ WHISPER_LANGUAGE=en
 
 ### Problem: Ollama returns "Out of memory" error
 
-**Cause:** Whisper medium + llama3.2:3b exceeds 16GB RAM
+**Cause:** Whisper medium + LLM (qwen2.5:3b-instruct or llama3.2:3b) exceeds 16GB RAM
 
 **Solution:** Use Whisper small instead (already default in Phase 2B)
 

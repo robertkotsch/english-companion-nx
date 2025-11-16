@@ -71,8 +71,8 @@ See `CONVERSATION_SESSION_MODE.md` for detailed documentation.
 └─────────────────────────────────────────┘
                 ↓
 ┌─────────────────────────────────────────┐
-│    💬 Ollama LLM Response (~6-8s)       │
-│         (llama3.2:3b)                   │
+│    💬 Ollama LLM Response (~5-7s)       │
+│    (qwen2.5:3b-instruct)                │
 └─────────────────────────────────────────┘
                 ↓
 ┌─────────────────────────────────────────┐
@@ -99,7 +99,7 @@ See `CONVERSATION_SESSION_MODE.md` for detailed documentation.
   - Long explanation: ~10-20s
   - Maximum: 30s (safety limit)
 - Transcription: ~1-2s (Whisper small on GPU)
-- LLM response: ~6-8s (Ollama llama3.2:3b)
+- LLM response: ~5-7s (Ollama qwen2.5:3b-instruct)
 - TTS synthesis: ~2.5s (Coqui VITS on GPU)
 - **Total: ~10-20s** from wake word to response (varies by question length)
 

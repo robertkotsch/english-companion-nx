@@ -15,7 +15,7 @@ class Config:
 
     # Ollama settings
     OLLAMA_HOST = os.getenv("OLLAMA_HOST", "127.0.0.1:11434")
-    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b-instruct")
 
     # Audio settings
     AUDIO_TEMP_DIR = os.getenv("AUDIO_TEMP_DIR", "/tmp/companion-audio")

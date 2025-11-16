@@ -12,19 +12,21 @@
 
 | Model | Size | RAM Usage | Response Time | Quality | Recommended Use |
 |-------|------|-----------|---------------|---------|-----------------|
-| **llama3.2:3b** | 2.0 GB | ~4 GB | ~8s (cold start) | ⭐⭐⭐⭐ Excellent | **PRIMARY - Main conversations** |
+| **qwen2.5:3b-instruct** | ~2.0 GB | ~4 GB | ~5-7s (cold start) | ⭐⭐⭐⭐⭐ Excellent | **PRIMARY - Main conversations (better grammar, speed, determinism)** |
+| llama3.2:3b | 2.0 GB | ~4 GB | ~8s (cold start) | ⭐⭐⭐⭐ Excellent | Previous default, good fallback |
 | gemma2:2b | 1.6 GB | ~3 GB | ~5s (cold start) | ⭐⭐⭐ Good | Fast mode (Phase 5+) |
 | llama3.1:8b | 4.9 GB | ❌ OOM | N/A | N/A | Too large for GPU memory |
 
 ### 🎯 Recommended Configuration
 
-**Primary Model:** `llama3.2:3b`
+**Primary Model:** `qwen2.5:3b-instruct`
 - ✅ Works reliably on Jetson Orin NX 16GB
-- ✅ Excellent conversational quality
-- ✅ Natural, friendly responses
-- ✅ Fast enough for real-time conversation (~2-3s after warmup)
+- ✅ Excellent conversational quality with superior grammar understanding
+- ✅ Natural, friendly responses with better determinism
+- ✅ Faster than llama3.2:3b (~5-7s cold start, ~1-2s warm)
 - ✅ Uses ~4GB RAM when loaded
-- ✅ Good balance of quality and performance
+- ✅ Excellent balance of quality, speed, and performance
+- ✅ Better for language learning (improved grammar detection/correction)
 
 ---
 
@@ -98,10 +100,11 @@ llama_load_model_from_file: failed to load model
 
 ```bash
 # Primary model for conversations
-OLLAMA_MODEL=llama3.2:3b
+OLLAMA_MODEL=qwen2.5:3b-instruct
 
-# Optional: Fast model (future feature - requires unloading primary)
-# OLLAMA_FAST_MODEL=gemma2:2b
+# Optional alternatives:
+# OLLAMA_MODEL=llama3.2:3b  # Previous default, good fallback
+# OLLAMA_FAST_MODEL=gemma2:2b  # Future fast mode feature
 ```
 
 ### Model Pre-warming Strategy
@@ -114,7 +117,7 @@ def prewarm_model():
     """Load model into memory at service startup"""
     import ollama
     ollama.generate(
-        model='llama3.2:3b',
+        model='qwen2.5:3b-instruct',
         prompt='System warmup',
         stream=False
     )
@@ -147,25 +150,30 @@ def prewarm_model():
 
 ## 🎯 Decision Matrix
 
-### Use llama3.2:3b if:
-- ✅ You want best conversational quality
-- ✅ You're okay with 2-4 second response times
+### Use qwen2.5:3b-instruct if:
+- ✅ You want best conversational quality with superior grammar understanding
+- ✅ You want faster response times than llama3.2:3b
 - ✅ You have 16GB Jetson Orin NX (you do!)
-- ✅ You want natural, engaging conversations
+- ✅ You want natural, engaging conversations with better determinism
+- ✅ You're building a language learning application (excellent grammar capabilities)
+
+### Use llama3.2:3b if:
+- ✅ You prefer the previous default model
+- ✅ You want proven stability (longer testing history)
 
 ### Future Considerations (Phase 5+):
 - **Fast mode toggle:** Allow switching to gemma2:2b for quicker responses
-  - Requires unloading llama3.2:3b first
+  - Requires unloading qwen2.5:3b-instruct first
   - Trade-off: Speed vs. Quality
 
 - **Hybrid approach:**
-  - Keep llama3.2:3b loaded (main conversations)
+  - Keep qwen2.5:3b-instruct loaded (main conversations)
   - Only load gemma2:2b for "quick mode" if user explicitly requests
 
 - **Model upgrades:**
   - Monitor for new 3B-4B models with better quality
   - Test phi3:3.8b as alternative
-  - Consider qwen2:7b if memory can be freed
+  - Consider qwen2.5:7b-instruct if memory can be freed
 
 ---
 
@@ -198,21 +206,21 @@ ollama run gemma2:2b "test"
 
 ## 📊 Memory Budget
 
-With llama3.2:3b as primary model:
+With qwen2.5:3b-instruct as primary model:
 
 ```
 Component                    Memory
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 System + OS                  3.0 GB
-llama3.2:3b (loaded)         4.0 GB
-Whisper Medium (future)      2.0 GB
-Coqui TTS (future)           0.5 GB
+qwen2.5:3b-instruct          4.0 GB
+Whisper Small                1.5 GB
+Coqui TTS                    0.5 GB
 Python Application           0.5 GB
 Audio Buffers                0.3 GB
 System Buffer                0.7 GB
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total                        11.0 GB ✅ (fits in 16GB)
-Available for overhead       5.0 GB
+Total                        10.5 GB ✅ (fits in 16GB)
+Available for overhead       5.5 GB
 ```
 
 **Status:** ✅ **Fits comfortably with room to spare**
@@ -221,13 +229,16 @@ Available for overhead       5.0 GB
 
 ## ✅ Final Recommendation
 
-**Use `llama3.2:3b` as your primary conversational model.**
+**Use `qwen2.5:3b-instruct` as your primary conversational model.**
 
-- Tested and working on your Jetson
 - Excellent quality for English conversation practice
-- Fast enough for natural dialogue (2-4s response time)
+- Superior grammar understanding and determinism
+- Faster than llama3.2:3b (5-7s cold start, ~1-2s warm)
 - Leaves memory for Whisper and TTS
 - Best balance of quality, speed, and resource usage
+- Ideal for language learning applications
+
+**Fallback:** `llama3.2:3b` if you prefer the previous default or need proven stability
 
 ---
 

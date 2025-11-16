@@ -43,7 +43,7 @@ Quick reference for Claude Code working with English Companion NX project.
 - **Wake Word**: OpenWakeWord ("hey jarvis" / "alexa")
 - **VAD**: Energy-based silence detection (3.0s timeout)
 - **STT**: Whisper small (GPU, ~1-2s) + hallucination filter
-- **LLM**: Ollama llama3.2:3b (~6-8s response)
+- **LLM**: Ollama qwen2.5:3b-instruct (faster, better grammar/determinism)
 - **TTS**: Coqui VITS (GPU, ~2.5s)
 - **Sessions**: Conversation sessions with 30s idle timeout
 

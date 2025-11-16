@@ -248,7 +248,7 @@ python3 -c "import ollama; print(ollama.list())"
 ```
 
 **This gets you:**
-- ✅ LLM connectivity (llama3.2:3b already downloaded)
+- ✅ LLM connectivity (qwen2.5:3b-instruct recommended, or llama3.2:3b)
 - ✅ Configuration management (.env files)
 - ✅ System monitoring
 - ✅ Ready to test basic conversation flow
@@ -262,7 +262,7 @@ python3 -c "import ollama; print(ollama.list())"
 Based on your Jetson:
 - ✅ Python 3.10.12
 - ✅ Ollama installed and working
-- ✅ llama3.2:3b model downloaded
+- ✅ qwen2.5:3b-instruct model (or llama3.2:3b)
 - ✅ Repository cloned
 - ⏭️ Virtual environment created
 - ⏭️ Dependencies to install

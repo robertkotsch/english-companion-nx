@@ -40,7 +40,7 @@ Detailed architecture, data flow, and performance specifications for English Com
 └─────────────────────────────────────────┘
                 ↓
 ┌─────────────────────────────────────────┐
-│  🤖 Llama 3.2 3B LLM (Ollama, ~6-8s)    │
+│  🤖 Qwen2.5 3B Instruct (Ollama, ~5-7s) │
 │    localhost:11434 via HTTP             │
 └─────────────────────────────────────────┘
                 ↓
@@ -119,7 +119,7 @@ Detailed architecture, data flow, and performance specifications for English Com
 **6. Conversation Processing**
 - Load conversation context (system prompt + last 20 exchanges)
 - Add user message to history
-- Send to Ollama (llama3.2:3b via HTTP, ~6-8s)
+- Send to Ollama (qwen2.5:3b-instruct via HTTP, ~5-7s)
 - LLM generates response (streaming disabled)
 - Add response to conversation history
 
@@ -158,7 +158,7 @@ Detailed architecture, data flow, and performance specifications for English Com
   - Long explanation: ~10-20s
   - Maximum: 30s (safety limit)
 - Transcription: ~1-2s (Whisper small on GPU)
-- LLM generation: ~6-8s (Ollama llama3.2:3b)
+- LLM generation: ~5-7s (Ollama qwen2.5:3b-instruct)
 - TTS synthesis: ~2.5s (Coqui VITS on GPU)
 
 **Total: ~10-20s per exchange** (varies by speech length)

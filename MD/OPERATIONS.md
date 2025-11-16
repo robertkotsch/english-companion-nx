@@ -101,9 +101,9 @@ systemctl --user is-enabled english-companion-nx
 
 ```bash
 # Pull models (one-time setup)
-ollama pull llama3.2:3b
-ollama pull llama3.1:13b-instruct-q4_0
-ollama pull nomic-embed-text  # For future embeddings
+ollama pull qwen2.5:3b-instruct  # Primary model (better grammar, speed)
+ollama pull llama3.2:3b          # Fallback option
+ollama pull nomic-embed-text     # For future embeddings
 
 # List installed models
 ollama list
@@ -115,7 +115,7 @@ ollama rm <model-name>
 systemctl status ollama
 
 # Test Ollama connection
-ollama run llama3.2:3b "Hello, how are you?"
+ollama run qwen2.5:3b-instruct "Hello, how are you?"
 ```
 
 ### Model Locations

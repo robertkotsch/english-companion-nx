@@ -355,7 +355,7 @@ class Config:
 
     # Model settings
     WHISPER_MODEL = os.getenv('WHISPER_MODEL', 'small')
-    OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3.2:3b')
+    OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'qwen2.5:3b-instruct')
     OLLAMA_HOST = os.getenv('OLLAMA_HOST', 'localhost:11434')
 
     # Memory settings
