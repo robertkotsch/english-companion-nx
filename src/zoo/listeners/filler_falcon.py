@@ -82,11 +82,16 @@ class FillerFalcon(BaseListener):
             if not matches:
                 return []
 
-            # Extract filler details
+            # Extract filler details and filter false positives
             fillers = []
             for match in matches:
                 filler_word = match.group(0).lower()
                 position = len(text[:match.start()].split())  # Word position
+
+                # Check if this is a false positive (legitimate usage, not filler)
+                if self._is_false_positive(text, match, filler_word):
+                    continue
+
                 fillers.append({
                     'word': filler_word,
                     'position': position,
@@ -173,3 +178,49 @@ class FillerFalcon(BaseListener):
 
         # Last resort: simple heuristic
         return count * 20
+
+    def _is_false_positive(
+        self,
+        text: str,
+        match: re.Match,
+        filler_word: str
+    ) -> bool:
+        """Check if detected filler is actually legitimate usage.
+
+        Args:
+            text: Full utterance text
+            match: Regex match object
+            filler_word: The matched filler word
+
+        Returns:
+            True if this is a false positive (should be filtered)
+        """
+        # Special handling for "like" - most common false positive
+        if filler_word == "like":
+            # Get context around the match
+            start_pos = match.start()
+
+            # Check for phrasal verbs: "look like", "seem like", "feel like", "sound like"
+            # Get the word before "like"
+            text_before = text[:start_pos].strip().lower()
+            words_before = text_before.split()
+
+            if words_before:
+                prev_word = words_before[-1]
+                # Common phrasal verbs with "like"
+                if prev_word in ['look', 'looks', 'looked', 'looking',
+                                 'seem', 'seems', 'seemed', 'seeming',
+                                 'feel', 'feels', 'felt', 'feeling',
+                                 'sound', 'sounds', 'sounded', 'sounding',
+                                 'taste', 'tastes', 'tasted', 'tasting',
+                                 'smell', 'smells', 'smelled', 'smelling']:
+                    return True  # This is phrasal verb, not filler
+
+        # "You know" is usually a filler, but "Do you know" is legitimate
+        if filler_word == "you know":
+            text_before = text[:match.start()].strip().lower()
+            if text_before.endswith('do') or text_before.endswith('did'):
+                return True  # Question, not filler
+
+        # No false positive detected
+        return False
