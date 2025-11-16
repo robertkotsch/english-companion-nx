@@ -56,9 +56,9 @@ class GrammarGiraffe(BaseListener):
             'articles': 0.5,         # Articles are usually clear (a/an/the)
             'pluralization': 0.6,    # Singular/plural is usually clear
             'tense': 0.7,            # Tense can be subjective/contextual
-            'subject_verb': 0.75,    # High false positive rate
+            'subject_verb': 0.95,    # Very high false positive rate with small LLM
             'word_order': 0.7,       # Can be stylistic
-            'prepositions': 0.7,     # Often contextual/idiomatic
+            'prepositions': 0.95,    # Often misidentified by small LLM, very contextual
             'pronouns': 0.6,         # Usually clear
         })
 
