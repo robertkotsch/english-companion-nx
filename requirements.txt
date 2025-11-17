@@ -24,6 +24,8 @@ prometheus-client==0.19.0  # Metrics export
 # Utilities
 requests==2.31.0  # HTTP client for MCP
 pydantic==2.5.0  # Data validation
+notion-client==2.2.1  # Notion API for vocabulary sync
+
 
 # Development & Testing
 pytest==7.4.3

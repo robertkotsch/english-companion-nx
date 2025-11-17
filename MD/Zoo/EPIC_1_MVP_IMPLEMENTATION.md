@@ -436,11 +436,11 @@ class BoundaryBison:
 - [x] Implement LexiLynx (vocab matching)
 - [x] Write listener integration tests
 
-### Phase 1.3: Memory & Planning (Week 2-3)
-- [ ] Implement NotionNightingale (read-only sync)
-- [ ] Implement SpacedSquirrel (simple SRS)
-- [ ] Implement SessionShepherd (daily planner)
-- [ ] Implement FocusFalcon (focus selector)
+### Phase 1.3: Memory & Planning (Week 2-3) ✅ 67% COMPLETE
+- [x] Implement NotionNightingale (read-only sync) ✅ COMPLETE
+- [x] Implement SpacedSquirrel (simple SRS) ✅ COMPLETE
+- [x] Implement SessionShepherd (daily planner) - Implementation done, tests pending
+- [x] Implement FocusFalcon (focus selector) - Implementation done, tests pending
 - [ ] Test Notion integration end-to-end
 
 ### Phase 1.4: Orchestration (Week 3)

@@ -292,4 +292,4 @@ make deploy-logs    # Check if working
 
 **Target Hardware:** Jetson Orin NX 16GB + Anker PowerConf S3
 **Last Updated:** January 2025
-**User Feedback:** "works really good so far. A bit finetuning and I have a really good conversation trainer."
+
