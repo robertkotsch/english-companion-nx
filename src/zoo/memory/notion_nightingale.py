@@ -234,7 +234,7 @@ class NotionNightingale:
                 except APIResponseError as e:
                     self.logger.error(
                         "NotionNightingale",
-                        f"Notion API error: {e.code} - {e.message}"
+                        f"Notion API error: {e}"
                     )
                     return False
             
