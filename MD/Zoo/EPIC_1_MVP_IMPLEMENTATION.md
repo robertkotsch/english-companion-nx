@@ -439,8 +439,8 @@ class BoundaryBison:
 ### Phase 1.3: Memory & Planning (Week 2-3) ✅ COMPLETE
 - [x] Implement NotionNightingale (read-only sync) ✅ COMPLETE
 - [x] Implement SpacedSquirrel (simple SRS) ✅ COMPLETE
-- [x] Implement SessionShepherd (daily planner) - Implementation done, tests pending
-- [x] Implement FocusFalcon (focus selector) - Implementation done, tests pending
+- [x] Implement SessionShepherd (daily planner) - Implementation done, tests successful ✅ COMPLETE
+- [x] Implement FocusFalcon (focus selector) - Implementation done, tests successful ✅ COMPLETE
 - [x] Test Notion integration end-to-end ✅ COMPLETE
 
 ### Phase 1.4: Orchestration (Week 3)
