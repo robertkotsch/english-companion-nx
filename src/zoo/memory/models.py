@@ -86,29 +86,59 @@ class VocabItem:
             date_obj = prop.get('date', {})
             return date_obj.get('start', '') if date_obj else ''
         
-        # Extract fields
-        word = get_text('Name', get_text('Word', ''))
-        vocab_type = get_select('Type', 'word')
-        definition = get_text('Definition', '')
-        example = get_text('Example', '')
-        status = get_select('Status', 'new')
-        category = get_select('Category', 'General')
-        added_date = get_date('Added') or datetime.now().isoformat()
+        # Extract fields based on user's specific Notion columns
+        # Columns: "Verb Category", "Main Verb + Collocation", "Synonyms (Main Verb)", 
+        # "Synonyms (Collocation)", "Relevant Phrasal Verbs", "Positive Adjective", 
+        # "Negative Adjective", "Idiomatic Expressions"
+        
+        # Primary word/phrase is "Main Verb + Collocation"
+        word = get_text('Main Verb + Collocation', '')
+        
+        # Category is the title field "Verb Category"
+        category = get_text('Verb Category', 'General')
+        
+        # Definition/Meaning - construct from synonyms for now as there is no explicit definition column
+        synonyms_main = get_text('Synonyms (Main Verb)', '')
+        synonyms_collo = get_text('Synonyms (Collocation)', '')
+        definition = f"Synonyms: {synonyms_main}"
+        if synonyms_collo:
+            definition += f"; {synonyms_collo}"
+            
+        # Construct example/notes from other fields
+        phrasal = get_text('Relevant Phrasal Verbs', '')
+        idioms = get_text('Idiomatic Expressions', '')
+        
+        notes_parts = []
+        if phrasal: notes_parts.append(f"Phrasal: {phrasal}")
+        if idioms: notes_parts.append(f"Idioms: {idioms}")
+        notes = " | ".join(notes_parts)
+        
+        # Adjectives as tags
+        pos_adj = get_text('Positive Adjective', '')
+        neg_adj = get_text('Negative Adjective', '')
+        tags = []
+        if pos_adj: tags.append(f"Pos: {pos_adj}")
+        if neg_adj: tags.append(f"Neg: {neg_adj}")
+        
+        # Default values for missing fields
+        vocab_type = 'collocation' if ' ' in word else 'word'
+        status = 'new' # Default status
+        added_date = datetime.now().isoformat() # No added date column visible
         
         return cls(
             id=page['id'],
             word=word,
-            type=VocabType(vocab_type.lower()) if vocab_type else VocabType.WORD,
+            type=VocabType(vocab_type) if vocab_type else VocabType.WORD,
             definition=definition,
-            example=example,
-            status=VocabStatus(status.lower()) if status else VocabStatus.NEW,
+            example="", # No example column
+            status=VocabStatus.NEW,
             category=category,
             added_date=added_date,
             notion_url=page.get('url', ''),
-            synonyms=get_multi_select('Synonyms'),
-            antonyms=get_multi_select('Antonyms'),
-            notes=get_text('Notes', ''),
-            tags=get_multi_select('Tags')
+            synonyms=[s.strip() for s in synonyms_main.split(',')] if synonyms_main else [],
+            antonyms=[],
+            notes=notes,
+            tags=tags
         )
     
     def to_dict(self) -> Dict[str, Any]:
