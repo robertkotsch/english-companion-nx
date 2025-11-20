@@ -82,11 +82,11 @@ class TestSessionShepherd(unittest.TestCase):
         
         # Setup mock returns
         self.mock_squirrel.get_due_today.return_value = [
-            SRSItem(item_id="item1", next_review="2023-01-01"),
-            SRSItem(item_id="item2", next_review="2023-01-01"),
-            SRSItem(item_id="item3", next_review="2023-01-01"),
-            SRSItem(item_id="item4", next_review="2023-01-01"),
-            SRSItem(item_id="item5", next_review="2023-01-01")
+            SRSItem(id="item1", type="vocabulary", content="word1", interval_days=1, next_review="2023-01-01", ease_factor=2.5, repetitions=0),
+            SRSItem(id="item2", type="vocabulary", content="word2", interval_days=1, next_review="2023-01-01", ease_factor=2.5, repetitions=0),
+            SRSItem(id="item3", type="vocabulary", content="word3", interval_days=1, next_review="2023-01-01", ease_factor=2.5, repetitions=0),
+            SRSItem(id="item4", type="vocabulary", content="word4", interval_days=1, next_review="2023-01-01", ease_factor=2.5, repetitions=0),
+            SRSItem(id="item5", type="vocabulary", content="word5", interval_days=1, next_review="2023-01-01", ease_factor=2.5, repetitions=0)
         ]
         self.mock_squirrel.get_all_items.return_value = []
         self.mock_falcon.select_focus.return_value = "vocab"
