@@ -11,14 +11,23 @@ from src.zoo.memory.notion_nightingale import NotionNightingale
 from src.zoo.zoo_logger import get_zoo_logger, set_zoo_log_level
 
 def test_sync():
+    # Debug: Read .env file directly
+    print("\nDEBUG: Reading .env file directly:")
+    try:
+        with open(".env", "r") as f:
+            for line in f:
+                if "NOTION_" in line:
+                    print(f"  {line.strip()}")
+    except FileNotFoundError:
+        print("  ❌ .env file not found!")
+
     # Load environment variables (force override to ignore stale shell vars)
     load_dotenv(override=True)
     
     api_key = os.getenv("NOTION_API_KEY")
     db_id = os.getenv("NOTION_VOCAB_DB_ID")
     
-    print(f"DEBUG: API Key found: {'Yes' if api_key else 'No'}")
-    print(f"DEBUG: DB ID: {db_id}")
+    print(f"\nDEBUG: Effective DB ID: {db_id}")
     
     if not api_key or not db_id:
         print("❌ Missing credentials in .env")
