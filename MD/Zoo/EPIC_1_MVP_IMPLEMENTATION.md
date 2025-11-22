@@ -443,23 +443,23 @@ class BoundaryBison:
 - [x] Implement FocusFalcon (focus selector) - Implementation done, tests successful ✅ COMPLETE
 - [x] Test Notion integration end-to-end ✅ COMPLETE
 
-### Phase 1.4: Orchestration (Week 3)
+### Phase 1.4: Orchestration (Week 3) ✅ COMPLETE
 - [x] Implement OrchestratorOctopus (signal processing)
 - [x] Implement signal scoring/prioritization logic
 - [x] Implement drill-now vs buffer decision logic
 - [x] Test orchestration with mock signals
 
-### Phase 1.5: Coaching (Week 4)
-- [ ] Implement TaskTiger (3 drill types)
-- [ ] Implement CoachCoyote (LLM prompt integration)
-- [ ] Implement drill validation logic
-- [ ] Test drill delivery end-to-end
+### Phase 1.5: Coaching (Week 4) ✅ COMPLETE
+- [x] Implement TaskTiger (3 drill types + Pause/Breath variants)
+- [x] Implement CoachCoyote (LLM prompt integration)
+- [x] Implement drill validation logic
+- [x] Test drill delivery end-to-end
 
-### Phase 1.6: Logging & Flow (Week 4-5)
-- [ ] Implement ScribeSparrow (utterance + session logging)
-- [ ] Implement BoundaryBison (mode control)
-- [ ] Create session summary generation
-- [ ] Test full session flow (boot → session → end)
+### Phase 1.6: Logging & Flow (Week 4-5) ✅ COMPLETE
+- [x] Implement ScribeSparrow (utterance + session logging)
+- [x] Implement BoundaryBison (mode control)
+- [x] Create session summary generation
+- [x] Test full session flow (boot → session → end)
 
 ### Phase 1.7: Integration with Phase 2B (Week 5)
 - [ ] Create `voice_assistant_zoo.py` (modified main entry)

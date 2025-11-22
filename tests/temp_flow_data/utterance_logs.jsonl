@@ -1,0 +1,2 @@
+{"text": "I um go", "signals": [{"type": "filler_detected", "data": {"count": 1}}], "action": {"type": "drill", "completed": true}, "timestamp": 1763834024.3049846}
+{"text": "Another one", "signals": [], "action": {"type": "pass_through"}, "timestamp": 1763834024.3054907}

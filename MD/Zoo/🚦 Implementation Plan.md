@@ -1,10 +1,10 @@
 # 🚦 Implementation Plan
 
-## Phase 1 vs Phase 2
+## EPIC 1 vs EPIC 2
 
 Now let’s split this into **what you build first** vs **what comes later**.
 
-### Phase 1 – MVP: “Smart but lean” trainer on Jetson Orin
+### EPIC 1 – MVP: “Smart but lean” trainer on Jetson Orin
 
 **Goal:** A *usable*, robust coach that:
 
@@ -14,7 +14,7 @@ Now let’s split this into **what you build first** vs **what comes later**.
 - gives simple drills,
 - and doesn’t overwhelm you.
 
-### Must-have in Phase 1
+### Must-have in EPIC 1
 
 **0️⃣ Control & Taming**
 
@@ -26,14 +26,14 @@ Now let’s split this into **what you build first** vs **what comes later**.
 - 🦅 **FillerFalcon** – filler tracking
 - 🐯 **TempoTiger** – basic WPM + pauses (even coarse is fine)
 - 🐈‍⬛ **LexiLynx** – track vocab usage vs Notion
-- (EchoEagle / PatternPanther / PronunciationPenguin / EmpathyElephant → Phase 2)
+- (EchoEagle / PatternPanther / PronunciationPenguin / EmpathyElephant → EPIC 2)
 
 **2️⃣ Knowledge & Memory**
 
 - 🐦 **NotionNightingale** – at least *read-only* to start
 - 🐿️ **SpacedSquirrel** – simple SRS (date-based, no full Anki logic needed at first)
 - 🐼 **PersonaPanda** – minimal profile (C1 goal, accent preference, intensity mode)
-- (ScriptSpider, StoryStork, CrawlerCrab → Phase 2)
+- (ScriptSpider, StoryStork, CrawlerCrab → EPIC 2)
 
 **3️⃣ Coaching & Intervention**
 
@@ -46,7 +46,7 @@ Now let’s split this into **what you build first** vs **what comes later**.
     - quick session (5–7 min) vs full session (15–20 min)
 - 🦅 **FocusFalcon** – very simple:
     - choose 1 main focus per session: *fillers* or *grammar* or *vocab*
-- (ActorAlbatross, ComprehensionCougar, StrategySwan → Phase 2)
+- (ActorAlbatross, ComprehensionCougar, StrategySwan → EPIC 2)
 
 **4️⃣ Day & Flow Control**
 
@@ -57,11 +57,11 @@ Now let’s split this into **what you build first** vs **what comes later**.
 
 ---
 
-### Phase 2 – Extensions: “Full-blown excellent coach”
+### EPIC 2 – Extensions: “Full-blown excellent coach”
 
 **Goal:** Add depth: actors, listening, pronunciation, motivation, strategies, richer context.
 
-### Add in Phase 2
+### Add in EPIC 2
 
 **1️⃣ Passive Listeners**
 

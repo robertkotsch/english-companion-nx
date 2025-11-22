@@ -1,0 +1,22 @@
+{
+  "session_id": "integration_test_session",
+  "date": "2025-11-22",
+  "type": "quick",
+  "focus": "fillers",
+  "duration_min": 1.0,
+  "stats": {
+    "total_utterances": 2,
+    "total_words": 5,
+    "wpm": 5.0,
+    "fillers_detected": 1,
+    "filler_rate_per_min": 1.0,
+    "grammar_errors": 0,
+    "vocab_used_count": 0,
+    "vocab_list": []
+  },
+  "drills": {
+    "offered": 1,
+    "completed": 1,
+    "completion_rate": 1.0
+  }
+}
