@@ -331,9 +331,57 @@ class VoiceAssistantZoo:
 
 def main():
     import sys
+
+    # Parse command line arguments
+    wake_word_model = "hey_jarvis"
+    stop_word_model = "alexa"
+    wake_threshold = 0.5
+    stop_threshold = 0.5
+    device_index = None
+    device_name = Config.AUDIO_DEVICE_NAME if hasattr(Config, 'AUDIO_DEVICE_NAME') else None
+
+    if len(sys.argv) > 1 and sys.argv[1] in ["--help", "-h"]:
+        print("Usage: python voice_assistant_zoo.py [WAKE_MODEL] [STOP_MODEL] [WAKE_THRESH] [STOP_THRESH] [DEVICE]")
+        print()
+        print("Arguments:")
+        print("  WAKE_MODEL  - Wake word model (default: hey_jarvis)")
+        print("  STOP_MODEL  - Stop word model (default: alexa)")
+        print("  WAKE_THRESH - Wake detection threshold 0.0-1.0 (default: 0.5)")
+        print("  STOP_THRESH - Stop detection threshold 0.0-1.0 (default: 0.5)")
+        print("  DEVICE      - Audio device index or name pattern (default: from .env or auto-detect)")
+        print()
+        print("Available models: hey_jarvis, alexa, hey_mycroft, timer")
+        return
+
+    if len(sys.argv) > 1:
+        wake_word_model = sys.argv[1]
+    if len(sys.argv) > 2:
+        stop_word_model = sys.argv[2]
+    if len(sys.argv) > 3:
+        wake_threshold = float(sys.argv[3])
+    if len(sys.argv) > 4:
+        stop_threshold = float(sys.argv[4])
+    if len(sys.argv) > 5:
+        # Try to parse as integer (device index), otherwise treat as device name
+        try:
+            device_index = int(sys.argv[5])
+            device_name = None
+        except ValueError:
+            device_name = sys.argv[5]
+            device_index = None
+
     try:
-        assistant = VoiceAssistantZoo()
+        assistant = VoiceAssistantZoo(
+            wake_word_model=wake_word_model,
+            stop_word_model=stop_word_model,
+            wake_word_threshold=wake_threshold,
+            stop_word_threshold=stop_threshold,
+            audio_device_index=device_index,
+            audio_device_name=device_name
+        )
         assistant.run()
+    except KeyboardInterrupt:
+        print("\n\n👋 Goodbye!")
     except Exception as e:
         print(f"Fatal Error: {e}")
         import traceback
