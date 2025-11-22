@@ -302,26 +302,32 @@ class VoiceAssistantZoo:
             if result == WakeWordType.STOP:
                 print("🛑 STOP WORD DETECTED")
                 break
-            
-            if time.time() - last_activity > idle_timeout:
-                print("💤 IDLE TIMEOUT")
-                break
 
-            if result == WakeWordType.NONE:
-                # Check if user is speaking (VAD logic is inside handle_conversation, 
-                # but we need to trigger it. In voice_assistant.py we just called handle_conversation 
-                # if no wake word was detected but we wanted to listen.
-                # Here we want to listen continuously until silence/timeout.
-                
-                # Stop wake detector to free audio
-                self.wake_detector.stop()
-                
-                success = self.handle_conversation()
-                
-                self.wake_detector.start()
-                
-                if success:
-                    last_activity = time.time()
+            elif result == WakeWordType.START:
+                # User said wake word again during session - just acknowledge
+                print("ℹ️  Already in session - continue speaking!")
+                last_activity = time.time()
+                continue
+
+            elif result == WakeWordType.NONE:
+                # No wake word detected in 2s - check if idle or user wants to speak
+                idle_duration = time.time() - last_activity
+
+                if idle_duration >= idle_timeout:
+                    # Idle timeout reached - end session
+                    print("💤 IDLE TIMEOUT")
+                    break
+                else:
+                    # Assume user wants to speak
+                    # Stop wake detector to free audio
+                    self.wake_detector.stop()
+
+                    success = self.handle_conversation()
+
+                    self.wake_detector.start()
+
+                    if success:
+                        last_activity = time.time()
 
 def main():
     import sys
