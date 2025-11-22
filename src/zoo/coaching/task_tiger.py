@@ -10,7 +10,7 @@ import random
 import time
 import uuid
 
-from zoo.signals import (
+from src.zoo.signals import (
     Signal,
     SIGNAL_GRAMMAR_ERROR,
     SIGNAL_FILLER_DETECTED,

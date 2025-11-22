@@ -7,7 +7,7 @@ into a natural conversation flow using an LLM.
 from typing import List, Dict, Any, Optional
 import time
 
-from zoo.coaching.task_tiger import Drill
+from src.zoo.coaching.task_tiger import Drill
 
 class CoachCoyote:
     """The conversational coach agent."""

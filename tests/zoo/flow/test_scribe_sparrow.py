@@ -5,7 +5,7 @@ import os
 import json
 import time
 import shutil
-from zoo.flow.scribe_sparrow import ScribeSparrow
+from src.zoo.flow.scribe_sparrow import ScribeSparrow
 
 TEST_DATA_DIR = "tests/temp_data"
 

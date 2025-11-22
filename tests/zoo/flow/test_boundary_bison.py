@@ -2,7 +2,7 @@
 
 import pytest
 import time
-from zoo.flow.boundary_bison import BoundaryBison, MODE_OFF, MODE_SOFT, MODE_NORMAL
+from src.zoo.flow.boundary_bison import BoundaryBison, MODE_OFF, MODE_SOFT, MODE_NORMAL
 
 @pytest.fixture
 def bison():

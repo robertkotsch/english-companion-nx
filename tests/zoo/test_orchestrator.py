@@ -1,7 +1,7 @@
 import pytest
 import time
-from zoo.orchestrator import OrchestratorOctopus, ActionType
-from zoo.signals import Signal, SIGNAL_GRAMMAR_ERROR, SIGNAL_FILLER_DETECTED, SIGNAL_VOCAB_OPPORTUNITY
+from src.zoo.orchestrator import OrchestratorOctopus, ActionType
+from src.zoo.signals import Signal, SIGNAL_GRAMMAR_ERROR, SIGNAL_FILLER_DETECTED, SIGNAL_VOCAB_OPPORTUNITY
 
 class TestOrchestratorOctopus:
     

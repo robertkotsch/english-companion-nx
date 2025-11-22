@@ -1,9 +1,9 @@
 """Integration tests for the full coaching flow."""
 
 import pytest
-from zoo.coaching.task_tiger import TaskTiger, DRILL_TYPE_FILLER
-from zoo.coaching.coach_coyote import CoachCoyote
-from zoo.signals import create_filler_signal
+from src.zoo.coaching.task_tiger import TaskTiger, DRILL_TYPE_FILLER
+from src.zoo.coaching.coach_coyote import CoachCoyote
+from src.zoo.signals import create_filler_signal
 
 def test_coaching_pipeline():
     # 1. Setup Agents

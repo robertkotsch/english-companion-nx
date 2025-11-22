@@ -11,7 +11,7 @@ from typing import List, Dict, Optional, Any
 import time
 import logging
 
-from zoo.signals import Signal, SIGNAL_GRAMMAR_ERROR, SIGNAL_FILLER_DETECTED, SIGNAL_VOCAB_OPPORTUNITY, SIGNAL_VOCAB_USED
+from src.zoo.signals import Signal, SIGNAL_GRAMMAR_ERROR, SIGNAL_FILLER_DETECTED, SIGNAL_VOCAB_OPPORTUNITY, SIGNAL_VOCAB_USED
 
 # Configure logging
 logger = logging.getLogger(__name__)

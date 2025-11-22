@@ -1,8 +1,8 @@
 """Unit tests for CoachCoyote agent."""
 
 import pytest
-from zoo.coaching.coach_coyote import CoachCoyote
-from zoo.coaching.task_tiger import Drill, DRILL_TYPE_FILLER
+from src.zoo.coaching.coach_coyote import CoachCoyote
+from src.zoo.coaching.task_tiger import Drill, DRILL_TYPE_FILLER
 
 @pytest.fixture
 def coach():

@@ -1,17 +1,17 @@
 """Unit tests for TaskTiger agent."""
 
 import pytest
-from zoo.coaching.task_tiger import (
-    TaskTiger, 
-    Drill, 
-    DRILL_TYPE_FILLER, 
-    DRILL_TYPE_GRAMMAR, 
+from src.zoo.coaching.task_tiger import (
+    TaskTiger,
+    Drill,
+    DRILL_TYPE_FILLER,
+    DRILL_TYPE_GRAMMAR,
     DRILL_TYPE_VOCAB,
     FILLER_VARIANT_STANDARD,
     FILLER_VARIANT_PAUSE,
     FILLER_VARIANT_BREATH
 )
-from zoo.signals import (
+from src.zoo.signals import (
     create_filler_signal,
     create_grammar_signal,
     create_vocab_signal,

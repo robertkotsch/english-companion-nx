@@ -4,8 +4,8 @@ import pytest
 import time
 import shutil
 import os
-from zoo.flow.scribe_sparrow import ScribeSparrow
-from zoo.flow.boundary_bison import BoundaryBison
+from src.zoo.flow.scribe_sparrow import ScribeSparrow
+from src.zoo.flow.boundary_bison import BoundaryBison
 
 TEST_DATA_DIR = "tests/temp_flow_data"
 
