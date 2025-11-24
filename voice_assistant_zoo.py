@@ -92,7 +92,7 @@ class VoiceAssistantZoo:
         print("\n🦁 Initializing Zoo Agents...")
         
         # Flow & State
-        self.day_dolphin = DayDolphin()
+        self.day_dolphin = DayDolphin(start_hour=0, end_hour=23)
         self.boundary_bison = BoundaryBison()
         self.scribe_sparrow = ScribeSparrow()
         

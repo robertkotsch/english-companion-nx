@@ -110,3 +110,20 @@ class OllamaClient:
             return len(response) > 0
         except Exception:
             return False
+
+    def generate(self, prompt: str, model: Optional[str] = None) -> str:
+        """
+        Generate a response for a single prompt (wrapper for chat)
+        
+        Args:
+            prompt: The input prompt
+            model: Optional model override
+            
+        Returns:
+            Generated text
+        """
+        # Use the instance model if none provided
+        # target_model = model or self.model # Unused for now as chat uses self.model
+        
+        return self.chat([{"role": "user", "content": prompt}])
+
