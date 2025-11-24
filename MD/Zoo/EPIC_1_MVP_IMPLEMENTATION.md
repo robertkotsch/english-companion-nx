@@ -467,7 +467,144 @@ class BoundaryBison:
 - [x] Test wake word → recording → Zoo → TTS flow
 - [x] Memory usage profiling (must fit in 11GB)
 
-### Phase 1.8: Testing & Refinement (Week 6)
+### Phase 1.8: Agent Wiring & Flow Integration (Week 6) ✅ COMPLETE
+**Goal:** Ensure all Phase 1 agents are properly wired into the conversation flow according to the Flow Plan.
+
+#### 1.8.1 Configuration & Dependencies ✅ COMPLETE
+- [x] Add Notion configuration to `Config` (`NOTION_API_KEY`, `NOTION_DATABASE_ID`)
+- [x] Fix `NotionNightingale` initialization with Config credentials
+- [x] Fix `SessionShepherd` initialization with dependencies (`spaced_squirrel`, `focus_falcon`)
+- [x] Fix initialization order (FocusFalcon before SessionShepherd)
+- [x] Update mock integration test with all required mocks
+
+#### 1.8.2 DAY_BOOT Sequence ✅ COMPLETE
+According to Flow Plan Step 0, DayDolphin should query agents at boot:
+
+- [x] **DayDolphin.boot()** - State machine initialization
+- [x] **NotionNightingale.sync()** - Vocabulary database sync
+- [x] **PersonaPanda.get_profile()** - Load user goals & preferences
+- [x] **SessionShepherd.build_daily_plan()** - Create daily practice plan
+- [ ] **ScribeSparrow "what happened yesterday?"** - Optional: Load previous session stats
+
+**Implementation:**
+```python
+# voice_assistant_zoo.py - run() method
+def run(self):
+    # Boot the day
+    self.day_dolphin.boot()
+    
+    # Sync Notion
+    self.notion_nightingale.sync()
+    
+    # Load User Profile ✅ NEW
+    user_profile = self.persona_panda.get_profile()
+    print(f"Goals: {user_profile.cefr_target}, Focus: {user_profile.weekly_focus}")
+    
+    # Build Plan
+    daily_plan = self.session_shepherd.build_daily_plan()
+```
+
+#### 1.8.3 Session Start Sequence ✅ COMPLETE
+- [x] **DayDolphin.start_session()** - Transition to IN_SESSION state
+- [x] **FocusFalcon.select_focus()** - Choose session focus area
+- [x] **Orchestrator.current_focus** - Update orchestrator with focus
+
+#### 1.8.4 Conversation Loop ✅ COMPLETE
+- [x] **Listeners.process_utterance()** - All 4 listeners emit signals
+- [x] **Orchestrator.process_utterance()** - Collect and prioritize signals
+- [x] **TaskTiger.design_drill()** - Design drill if DRILL_NOW action
+- [x] **CoachCoyote.deliver_drill()** - Deliver drill with context
+- [x] **CoachCoyote.converse()** - Normal conversation with focus/intensity
+- [x] **ScribeSparrow.log_utterance()** - Log utterance with signals
+- [x] **BoundaryBison.get_mode()** - Provide intensity for coaching
+
+#### 1.8.5 Memory Updates During Conversation ✅ COMPLETE
+According to Flow Plan Step 2.5:
+
+- [x] **SpacedSquirrel.mark_reviewed()** - Track drill completion & adjust intervals ✅ NEW
+- [x] **ScribeSparrow.log_utterance()** - Log signals and drills
+- [ ] **NotionNightingale + LexiLynx** - Update vocab usage (optional enhancement)
+
+**Implementation:**
+```python
+# voice_assistant_zoo.py - handle_conversation() method
+if drill:
+    response = self.coach.deliver_drill(drill, ...)
+    
+    # Mark drill as reviewed ✅ NEW
+    try:
+        self.spaced_squirrel.mark_reviewed(drill.id, success=True)
+        print(f"🐿️ SpacedSquirrel: Marked drill {drill.id} as reviewed")
+    except Exception as e:
+        print(f"⚠️ SpacedSquirrel: Failed to mark drill: {e}")
+```
+
+#### 1.8.6 Session End Sequence ✅ COMPLETE
+- [x] **DayDolphin.end_session()** - Transition out of IN_SESSION
+- [x] **ScribeSparrow.generate_session_summary()** - Create session summary
+- [x] **SpacedSquirrel.save_schedule()** - Persist SRS updates (buffered)
+
+#### 1.8.7 Agent Wiring Status Summary
+
+| Agent | Initialized | DAY_BOOT | Session Start | Conversation Loop | Session End | Status |
+|-------|-------------|----------|---------------|-------------------|-------------|--------|
+| **DayDolphin** | ✅ | ✅ boot() | ✅ start_session() | - | ✅ end_session() | ✅ Complete |
+| **NotionNightingale** | ✅ | ✅ sync() | - | - | - | ✅ Complete |
+| **PersonaPanda** | ✅ | ✅ get_profile() | - | - | - | ✅ Complete |
+| **SpacedSquirrel** | ✅ | (via Shepherd) | - | ✅ mark_reviewed() | ✅ save_schedule() | ✅ Complete |
+| **SessionShepherd** | ✅ | ✅ build_daily_plan() | - | - | - | ✅ Complete |
+| **FocusFalcon** | ✅ | (via Shepherd) | ✅ select_focus() | - | - | ✅ Complete |
+| **BoundaryBison** | ✅ | - | - | ✅ get_mode() | - | ✅ Complete |
+| **ScribeSparrow** | ✅ | - | - | ✅ log_utterance() | ✅ generate_summary() | ✅ Complete |
+| **OrchestratorOctopus** | ✅ | - | ✅ current_focus | ✅ process_utterance() | - | ✅ Complete |
+| **TaskTiger** | ✅ | - | - | ✅ design_drill() | - | ✅ Complete |
+| **CoachCoyote** | ✅ | - | ✅ greeting | ✅ deliver_drill() / converse() | - | ✅ Complete |
+| **Listeners (4)** | ✅ | - | - | ✅ process_utterance() | - | ✅ Complete |
+
+#### 1.8.8 Optional Enhancements (Not Required for MVP)
+
+**PersonaPanda → CoachCoyote Integration**
+Pass user profile to CoachCoyote for tone adaptation:
+```python
+# voice_assistant_zoo.py - handle_conversation() method
+response = self.coach.converse(
+    utterance=user_message,
+    context=self.context,
+    focus=self.orchestrator.current_focus,
+    intensity=self.boundary_bison.get_mode(),
+    user_profile=self.persona_panda.get_profile()  # Optional enhancement
+)
+```
+
+**ScribeSparrow "Yesterday's Stats" at DAY_BOOT**
+Query previous session stats for better planning:
+```python
+# voice_assistant_zoo.py - run() method
+print("📝 ScribeSparrow: Loading yesterday's stats...")
+yesterday_stats = self.scribe_sparrow.get_yesterday_summary()
+if yesterday_stats:
+    print(f"   - Yesterday: {yesterday_stats.get('drills_completed', 0)} drills completed")
+```
+
+**NotionNightingale + LexiLynx Vocab Usage Tracking**
+Update vocab usage during conversation:
+```python
+# After LexiLynx detects vocab usage
+if vocab_used_signal:
+    self.notion_nightingale.mark_vocab_used(
+        word=vocab_used_signal.data['word'],
+        correct=vocab_used_signal.data['correct']
+    )
+```
+
+#### 1.8.9 Verification ✅ COMPLETE
+- [x] Mock integration test passes
+- [x] All agents initialize without errors
+- [x] SpacedSquirrel drill tracking functional
+- [x] PersonaPanda profile loading functional
+- [x] Day start/end logic verified
+
+### Phase 1.9: Testing & Refinement (Week 7)
 - [ ] End-to-end system tests (full conversations)
 - [ ] Performance tuning (latency < 10s total)
 - [ ] SSD write monitoring (< 200MB/day)

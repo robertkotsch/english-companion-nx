@@ -63,6 +63,10 @@ class Config:
     PORCUPINE_START_SENSITIVITY = float(os.getenv("PORCUPINE_START_SENSITIVITY", "0.5"))
     PORCUPINE_STOP_SENSITIVITY = float(os.getenv("PORCUPINE_STOP_SENSITIVITY", "0.5"))
 
+    # Notion settings
+    NOTION_API_KEY = os.getenv("NOTION_API_KEY", "")
+    NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID", "")
+
     @classmethod
     def ensure_dirs(cls):
         """Ensure required directories exist"""

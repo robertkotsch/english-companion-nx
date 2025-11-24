@@ -18,6 +18,7 @@ sys.modules['numpy'] = MagicMock()
 sys.modules['whisper'] = MagicMock()
 sys.modules['ollama'] = MagicMock()
 sys.modules['notion_client'] = MagicMock()
+sys.modules['notion_client.errors'] = MagicMock()
 sys.modules['TTS'] = MagicMock()
 sys.modules['TTS.api'] = MagicMock()
 
@@ -35,7 +36,9 @@ class TestZooIntegrationMock(unittest.TestCase):
     @patch('voice_assistant_zoo.TranscriptionService')
     @patch('voice_assistant_zoo.SynthesisService')
     @patch('voice_assistant_zoo.OllamaClient')
-    def test_full_pipeline_flow(self, MockOllama, MockSynth, MockTrans, MockPlayer, MockRecorder, MockWake):
+    @patch('voice_assistant_zoo.NotionNightingale')
+    @patch('voice_assistant_zoo.SessionShepherd')
+    def test_full_pipeline_flow(self, MockShepherd, MockNotion, MockOllama, MockSynth, MockTrans, MockPlayer, MockRecorder, MockWake):
         """Test the full pipeline flow with mocks"""
         
         # Setup Mocks

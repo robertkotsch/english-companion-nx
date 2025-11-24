@@ -35,6 +35,8 @@ from src.conversation.llm_client import OllamaClient
 from src.zoo.orchestrator import OrchestratorOctopus, ActionType
 from src.zoo.coaching.coach_coyote import CoachCoyote
 from src.zoo.coaching.task_tiger import TaskTiger
+from src.zoo.coaching.session_shepherd import SessionShepherd
+from src.zoo.coaching.focus_falcon import FocusFalcon
 from src.zoo.flow.day_dolphin import DayDolphin, DayState, SessionType
 from src.zoo.flow.scribe_sparrow import ScribeSparrow
 from src.zoo.flow.boundary_bison import BoundaryBison
@@ -42,6 +44,9 @@ from src.zoo.listeners.grammar_giraffe import GrammarGiraffe
 from src.zoo.listeners.filler_falcon import FillerFalcon
 from src.zoo.listeners.tempo_tiger import TempoTiger
 from src.zoo.listeners.lexi_lynx import LexiLynx
+from src.zoo.memory.notion_nightingale import NotionNightingale
+from src.zoo.memory.spaced_squirrel import SpacedSquirrel
+from src.zoo.memory.persona_panda import PersonaPanda
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -96,6 +101,23 @@ class VoiceAssistantZoo:
         self.boundary_bison = BoundaryBison()
         self.scribe_sparrow = ScribeSparrow()
         
+        # Memory Agents
+        print("   - Memory Agents...")
+        self.notion_nightingale = NotionNightingale(
+            api_key=Config.NOTION_API_KEY,
+            database_id=Config.NOTION_DATABASE_ID
+        )
+        self.spaced_squirrel = SpacedSquirrel()
+        self.persona_panda = PersonaPanda()
+
+        # Planning Agents
+        print("   - Planning Agents...")
+        self.focus_falcon = FocusFalcon()
+        self.session_shepherd = SessionShepherd(
+            spaced_squirrel=self.spaced_squirrel,
+            focus_falcon=self.focus_falcon
+        )
+
         # Brains
         self.orchestrator = OrchestratorOctopus()
         self.task_tiger = TaskTiger()
@@ -113,8 +135,7 @@ class VoiceAssistantZoo:
             LexiLynx()
         ]
 
-        # Conversation Context (handled by CoachCoyote internally? No, CoachCoyote expects context list)
-        # We need to maintain context locally or in a simple manager
+        # Conversation Context
         self.context = [] 
         self.max_context_size = 20
 
@@ -180,6 +201,7 @@ class VoiceAssistantZoo:
                 print("   - Designing Drill...")
                 drill = self.task_tiger.design_drill(action.signal)
                 if drill:
+                    print(f"   - 🐅 TaskTiger: Drill designed ({drill.type})")
                     response = self.coach.deliver_drill(
                         drill=drill,
                         utterance=user_message,
@@ -187,6 +209,14 @@ class VoiceAssistantZoo:
                         focus=self.orchestrator.current_focus,
                         intensity=self.boundary_bison.get_mode()
                     )
+                    # Mark drill as completed in SpacedSquirrel
+                    # In MVP, we assume if we delivered it, it counts as an "attempt"
+                    # In a full system, we'd wait for the user's NEXT response to verify
+                    try:
+                        self.spaced_squirrel.mark_reviewed(drill.id, success=True)
+                        print(f"   - 🐿️  SpacedSquirrel: Marked drill {drill.id} as reviewed")
+                    except Exception as e:
+                        print(f"   - ⚠️  SpacedSquirrel: Failed to mark drill: {e}")
                 else:
                     # Fallback if drill design fails
                     response = self.coach.converse(user_message, self.context)
@@ -258,7 +288,27 @@ class VoiceAssistantZoo:
         print("=" * 60)
 
         # Boot the day
+        print("\n🌅 DayDolphin: Booting day...")
         self.day_dolphin.boot()
+        
+        # Sync Notion
+        print("🐦 NotionNightingale: Syncing vocabulary...")
+        try:
+            self.notion_nightingale.sync()
+            print("   - Sync complete.")
+        except Exception as e:
+            print(f"   - Sync failed (continuing with cache): {e}")
+
+        # Load User Profile
+        print("🐼 PersonaPanda: Loading user profile...")
+        user_profile = self.persona_panda.get_profile()
+        print(f"   - Goals: {user_profile.cefr_target} level, Focus: {user_profile.weekly_focus}")
+        print(f"   - Intensity: {user_profile.coach_intensity}, Topics: {', '.join(user_profile.topics[:3])}")
+
+        # Build Plan
+        print("🐑 SessionShepherd: Building daily plan...")
+        daily_plan = self.session_shepherd.build_daily_plan()
+        print(f"   - Plan built: Focus={daily_plan.get('focus', 'general')}")
 
         try:
             self.wake_detector.start()
@@ -270,11 +320,27 @@ class VoiceAssistantZoo:
                 
                 if result == WakeWordType.START:
                     print("\n🎯 WAKE WORD DETECTED!")
-                    self.day_dolphin.start_session(SessionType.QUICK) # Default to quick session
+                    
+                    # Start Session
+                    session_type = SessionType.QUICK # Default
+                    print(f"🐬 DayDolphin: Starting {session_type.value} session")
+                    self.day_dolphin.start_session(session_type)
+                    
+                    # Select Focus
+                    focus = self.focus_falcon.select_focus(recent_stats={})
+                    self.orchestrator.current_focus = focus
+                    print(f"🦅 FocusFalcon: Selected session focus -> '{focus}'")
                     
                     self.run_session()
                     
+                    # End Session
+                    print("🐬 DayDolphin: Ending session")
                     self.day_dolphin.end_session()
+                    
+                    # Summary
+                    summary = self.scribe_sparrow.generate_session_summary()
+                    print(f"📝 ScribeSparrow: Session summary generated ({summary.get('duration_min', 0):.1f} min)")
+                    
                     print("\n👂 Returning to wake word listening...")
 
         except KeyboardInterrupt:
@@ -288,7 +354,7 @@ class VoiceAssistantZoo:
         last_activity = time.time()
         
         # Greet
-        greeting = self.coach.converse("Hello", [], focus="general") # Simple greeting trigger
+        greeting = self.coach.converse("Hello", [], focus=self.orchestrator.current_focus) 
         print(f"🤖 Assistant: {greeting}\n")
         tts_file = self.synthesis.synthesize(greeting)
         self.player.play(tts_file)
