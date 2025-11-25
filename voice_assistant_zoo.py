@@ -19,8 +19,11 @@ Flow:
 import time
 import torch
 import logging
+import os
+import sys
 from pathlib import Path
 from typing import Optional, List
+from contextlib import contextmanager
 
 from src.core.config import Config
 from src.core.memory import MemoryMonitor
@@ -48,6 +51,19 @@ from src.zoo.memory.notion_nightingale import NotionNightingale
 from src.zoo.memory.spaced_squirrel import SpacedSquirrel
 from src.zoo.memory.persona_panda import PersonaPanda
 
+@contextmanager
+def suppress_alsa_errors():
+    """Suppress ALSA library error messages by redirecting stderr"""
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    old_stderr = os.dup(2)
+    try:
+        os.dup2(devnull, 2)
+        yield
+    finally:
+        os.dup2(old_stderr, 2)
+        os.close(devnull)
+        os.close(old_stderr)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("VoiceAssistantZoo")
@@ -73,17 +89,18 @@ class VoiceAssistantZoo:
 
         # 1. Initialize Hardware & Core Services
         print("\n🎤 Initializing audio system...")
-        self.wake_detector = WakeWordDetector(
-            start_model=wake_word_model,
-            stop_model=stop_word_model,
-            start_threshold=wake_word_threshold,
-            stop_threshold=stop_word_threshold,
-            audio_device_index=audio_device_index,
-            audio_device_name=audio_device_name
-        )
-        self.recorder = AudioRecorder()
-        self.recorder.cleanup_previous_instances()
-        self.player = AudioPlayer()
+        with suppress_alsa_errors():
+            self.wake_detector = WakeWordDetector(
+                start_model=wake_word_model,
+                stop_model=stop_word_model,
+                start_threshold=wake_word_threshold,
+                stop_threshold=stop_word_threshold,
+                audio_device_index=audio_device_index,
+                audio_device_name=audio_device_name
+            )
+            self.recorder = AudioRecorder()
+            self.recorder.cleanup_previous_instances()
+            self.player = AudioPlayer()
         
         self.audio_device_index = audio_device_index
         self.audio_device_name = audio_device_name
