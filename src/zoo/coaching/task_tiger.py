@@ -17,6 +17,7 @@ from src.zoo.signals import (
     SIGNAL_VOCAB_OPPORTUNITY,
     SIGNAL_VOCAB_USED
 )
+from src.zoo.zoo_logger import get_zoo_logger
 
 # Drill Types
 DRILL_TYPE_FILLER = "filler"
@@ -45,6 +46,7 @@ class TaskTiger:
 
     def __init__(self):
         self.drill_history: List[Drill] = []
+        self.logger = get_zoo_logger()
 
     def design_drill(self, signal: Signal, context: str = "") -> Optional[Drill]:
         """Generate a drill based on the provided signal.
@@ -57,13 +59,18 @@ class TaskTiger:
             A Drill object or None if no drill could be designed.
         """
         if signal.type == SIGNAL_FILLER_DETECTED:
-            return self._design_filler_drill(signal)
+            drill = self._design_filler_drill(signal)
         elif signal.type == SIGNAL_GRAMMAR_ERROR:
-            return self._design_grammar_drill(signal)
+            drill = self._design_grammar_drill(signal)
         elif signal.type == SIGNAL_VOCAB_OPPORTUNITY:
-            return self._design_vocab_drill(signal)
+            drill = self._design_vocab_drill(signal)
+        else:
+            drill = None
         
-        return None
+        if drill:
+            self.logger.info("TaskTiger", f"Designed {drill.type} drill: {drill.instruction[:50]}...")
+        
+        return drill
 
     def _design_filler_drill(self, signal: Signal) -> Drill:
         """Design a drill to reduce filler usage."""

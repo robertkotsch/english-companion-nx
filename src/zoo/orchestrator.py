@@ -12,9 +12,7 @@ import time
 import logging
 
 from src.zoo.signals import Signal, SIGNAL_GRAMMAR_ERROR, SIGNAL_FILLER_DETECTED, SIGNAL_VOCAB_OPPORTUNITY, SIGNAL_VOCAB_USED
-
-# Configure logging
-logger = logging.getLogger(__name__)
+from src.zoo.zoo_logger import get_zoo_logger
 
 class ActionType(Enum):
     """Types of actions the Orchestrator can decide on."""
@@ -41,6 +39,7 @@ class OrchestratorOctopus:
             config: Configuration dictionary.
         """
         self.config = config or {}
+        self.logger = get_zoo_logger()
         self.last_drill_time = 0.0
         self.drill_cooldown_sec = self.config.get("drill_cooldown_sec", 60.0) # Minimum time between drills
         self.max_drills_per_session = self.config.get("max_drills_per_session", 10)
@@ -79,6 +78,13 @@ class OrchestratorOctopus:
 
         # 3. Decide action based on top signal
         action = self._decide_action(top_signal, top_score)
+        
+        # Log the decision
+        self.logger.orchestrator_decision(
+            action.type.value,
+            len(signals),
+            f"{action.reason} (top signal: {top_signal.type}, score: {top_score:.1f})"
+        )
         
         # 4. Update state if we decided to drill
         if action.type == ActionType.DRILL_NOW:

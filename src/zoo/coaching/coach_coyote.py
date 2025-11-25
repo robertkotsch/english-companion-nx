@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 import time
 
 from src.zoo.coaching.task_tiger import Drill
+from src.zoo.zoo_logger import get_zoo_logger
 
 class CoachCoyote:
     """The conversational coach agent."""
@@ -20,6 +21,7 @@ class CoachCoyote:
         """
         self.llm_client = llm_client
         self.model_name = model_name
+        self.logger = get_zoo_logger()
         self.system_prompt_template = (
             "You are Rob's English conversation coach. You are friendly, encouraging, but professional.\n\n"
             "Current Focus: {focus}\n"
@@ -52,10 +54,12 @@ class CoachCoyote:
         Returns:
             The coach's response text.
         """
-        return self._generate_response(
+        response = self._generate_response(
             utterance, context, focus, profile, intensity,
             drill=None
         )
+        self.logger.coach_response("CoachCoyote", "conversation", f"Response length: {len(response)} chars")
+        return response
 
     def deliver_drill(
         self,
@@ -79,10 +83,12 @@ class CoachCoyote:
         Returns:
             The coach's response containing the drill.
         """
-        return self._generate_response(
+        response = self._generate_response(
             utterance, context, focus, profile, intensity,
             drill=drill
         )
+        self.logger.coach_response("CoachCoyote", "drill_delivery", f"Drill: {drill.type}")
+        return response
 
     def _generate_response(
         self,
