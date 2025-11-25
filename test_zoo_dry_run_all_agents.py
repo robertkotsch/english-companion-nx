@@ -96,9 +96,9 @@ class ZooDryRunTester:
             self.print_test("Signal", "Factory functions")
             filler_sig = create_filler_signal("FillerFalcon", "um", 1, 2, 5.0)
             assert filler_sig.type == "filler_detected"
-            grammar_sig = create_grammar_signal("GrammarGiraffe", "article", "a/an", "Should use 'an'", 0.7)
+            grammar_sig = create_grammar_signal("GrammarGiraffe", "article", 0.7, "a", "an", explanation="Should use 'an'")
             assert grammar_sig.type == "grammar_error"
-            vocab_sig = create_vocab_signal("LexiLynx", "leverage", "verb", True)
+            vocab_sig = create_vocab_signal("LexiLynx", "vocab_used", "leverage", 0.0, word_type="verb", correct=True)
             assert vocab_sig.type == "vocab_used"
             self.record_result("Signal", True, "Factory functions work")
             
@@ -118,26 +118,26 @@ class ZooDryRunTester:
             # Test boot
             self.print_test("DayDolphin", "Boot sequence")
             dolphin.boot()
-            assert dolphin.get_state() == DayState.WAITING_FOR_USER
-            self.record_result("DayDolphin", True, f"Boot successful, state: {dolphin.get_state().value}")
+            assert dolphin.state == DayState.WAITING_FOR_USER
+            self.record_result("DayDolphin", True, f"Boot successful, state: {dolphin.state.value}")
             
             # Test session start
             self.print_test("DayDolphin", "Start session")
             dolphin.start_session(SessionType.QUICK)
-            assert dolphin.get_state() == DayState.IN_SESSION
-            self.record_result("DayDolphin", True, f"Session started, state: {dolphin.get_state().value}")
+            assert dolphin.state == DayState.IN_SESSION
+            self.record_result("DayDolphin", True, f"Session started, state: {dolphin.state.value}")
             
             # Test session end
             self.print_test("DayDolphin", "End session")
             dolphin.end_session()
-            assert dolphin.get_state() == DayState.WAITING_FOR_USER
-            self.record_result("DayDolphin", True, f"Session ended, state: {dolphin.get_state().value}")
+            assert dolphin.state == DayState.WAITING_FOR_USER
+            self.record_result("DayDolphin", True, f"Session ended, state: {dolphin.state.value}")
             
             # Test shutdown
             self.print_test("DayDolphin", "Shutdown")
             dolphin.shutdown()
-            assert dolphin.get_state() == DayState.DAY_OVER
-            self.record_result("DayDolphin", True, f"Shutdown successful, state: {dolphin.get_state().value}")
+            assert dolphin.state == DayState.DAY_OVER
+            self.record_result("DayDolphin", True, f"Shutdown successful, state: {dolphin.state.value}")
             
         except Exception as e:
             self.record_result("DayDolphin", False, f"Error: {e}")
@@ -339,23 +339,23 @@ class ZooDryRunTester:
             
             start_time = time.time()
             try:
-                nightingale.sync()
+                nightingale.sync_from_notion(force=True)
                 elapsed = time.time() - start_time
                 print(f"   ⏱️  API response time: {elapsed:.2f}s")
                 
                 # Check cache
-                stats = nightingale.get_stats()
-                print(f"   📊 Synced: {stats['total_words']} words, {stats['total_collocations']} collocations")
+                cache_info = nightingale.get_cache_info()
+                print(f"   📊 Synced: {cache_info['total_items']} items")
                 self.record_result("NotionNightingale", True, 
-                    f"Real API sync successful: {stats['total_words']} words")
+                    f"Real API sync successful: {cache_info['total_items']} items")
             except Exception as sync_error:
                 # If sync fails, try to load from cache
                 print(f"   ⚠️  Sync failed: {sync_error}")
                 print(f"   📂 Attempting to load from cache...")
-                stats = nightingale.get_stats()
-                if stats['total_words'] > 0:
+                cache_info = nightingale.get_cache_info()
+                if cache_info['total_items'] > 0:
                     self.record_result("NotionNightingale", True, 
-                        f"Loaded from cache: {stats['total_words']} words")
+                        f"Loaded from cache: {cache_info['total_items']} items")
                 else:
                     raise sync_error
             
@@ -443,12 +443,12 @@ class ZooDryRunTester:
             plan = shepherd.build_daily_plan()
             
             print(f"   📋 Plan created:")
-            print(f"      - Date: {plan.get('date', 'N/A')}")
-            print(f"      - Focus: {plan.get('focus', 'N/A')}")
-            print(f"      - Review items: {len(plan.get('review_due', []))}")
+            print(f"      - Date: {plan.date}")
+            print(f"      - Focus: {plan.focus}")
+            print(f"      - Review items: {len(plan.review_due)}")
             
             self.record_result("SessionShepherd", True, 
-                f"Daily plan built: {plan.get('focus', 'N/A')} focus")
+                f"Daily plan built: {plan.focus} focus")
             
         except Exception as e:
             self.record_result("SessionShepherd", False, f"Error: {e}")
@@ -470,7 +470,7 @@ class ZooDryRunTester:
             # Create real signals
             signals = [
                 create_filler_signal("FillerFalcon", "um", 1, 3, 6.0),
-                create_grammar_signal("GrammarGiraffe", "tense", "went/gone", "Should use 'went'", 0.8)
+                create_grammar_signal("GrammarGiraffe", "tense", 0.8, "went", "gone", explanation="Should use 'went'")
             ]
             
             utterance = "Um, I have went to the store"
@@ -515,14 +515,14 @@ class ZooDryRunTester:
             
             # Test grammar drill
             self.print_test("TaskTiger", "Design grammar drill")
-            grammar_signal = create_grammar_signal("GrammarGiraffe", "tense", "went/gone", "Use past simple", 0.8)
+            grammar_signal = create_grammar_signal("GrammarGiraffe", "tense", 0.8, "went", "gone", explanation="Use past simple")
             grammar_drill = tiger.design_drill(grammar_signal)
             print(f"   🎯 Drill type: {grammar_drill.type}")
             self.record_result("TaskTiger", True, f"Grammar drill designed: {grammar_drill.type}")
             
             # Test vocab drill
             self.print_test("TaskTiger", "Design vocab drill")
-            vocab_signal = create_vocab_signal("LexiLynx", "leverage", "verb", True)
+            vocab_signal = create_vocab_signal("LexiLynx", "vocab_used", "leverage", 0.0, word_type="verb", correct=True)
             vocab_drill = tiger.design_drill(vocab_signal)
             print(f"   🎯 Drill type: {vocab_drill.type}")
             self.record_result("TaskTiger", True, f"Vocab drill designed: {vocab_drill.type}")
@@ -569,7 +569,7 @@ class ZooDryRunTester:
             
             print(f"   ⏳ Calling real LLM for drill delivery...")
             start_time = time.time()
-            drill_response = coach.deliver_drill(drill, utterance, context, focus, "normal")
+            drill_response = coach.deliver_drill(drill, utterance, context, focus, profile=None, intensity="normal")
             elapsed = time.time() - start_time
             
             print(f"   ⏱️  LLM response time: {elapsed:.2f}s")
@@ -609,15 +609,25 @@ class ZooDryRunTester:
             
             # Test session summary
             self.print_test("ScribeSparrow", "Generate session summary")
-            summary = sparrow.generate_session_summary()
+            # Generate summary with required parameters
+            session_id = "test_session"
+            utterances = [{"text": "test", "signals": [], "action": {}}]
+            start_time = time.time() - 300  # 5 min ago
+            end_time = time.time()
+            focus = "grammar"
+            session_type = "quick"
+            
+            summary = sparrow.generate_session_summary(
+                session_id, utterances, start_time, end_time, focus, session_type
+            )
             
             print(f"   📊 Summary:")
             print(f"      - Duration: {summary.get('duration_min', 0):.1f} min")
-            print(f"      - Utterances: {summary.get('total_utterances', 0)}")
-            print(f"      - Drills: {summary.get('drills_offered', 0)}")
+            print(f"      - Utterances: {summary.get('stats', {}).get('total_utterances', 0)}")
+            print(f"      - Drills: {summary.get('drills', {}).get('offered', 0)}")
             
             self.record_result("ScribeSparrow", True, 
-                f"Session summary generated: {summary.get('total_utterances', 0)} utterances")
+                f"Session summary generated: {summary.get('stats', {}).get('total_utterances', 0)} utterances")
             
         except Exception as e:
             self.record_result("ScribeSparrow", False, f"Error: {e}")
@@ -645,7 +655,7 @@ class ZooDryRunTester:
             
             # Test drill throttling
             self.print_test("BoundaryBison", "Check drill throttling")
-            can_drill = bison.can_drill_now(time.time() - 100)
+            can_drill = bison.can_drill_now()
             print(f"   ⏱️  Can drill now: {can_drill}")
             self.record_result("BoundaryBison", True, f"Throttling check: {can_drill}")
             
