@@ -1,6 +1,31 @@
-# English Companion NX Project - Documentation Index
+# English Companion NX
 
-**AI-Powered English Conversation Partner for Jetson Orin NX**
+**An always-on, fully local voice AI for English conversation practice, running 24/7 on an NVIDIA Jetson Orin NX.**
+
+Not a demo. A `systemd` service in continuous operation: it wakes on a hotword, listens, transcribes, reasons with a local LLM, and replies in synthesized speech, while a multi-agent layer quietly analyzes each utterance for coaching. Built from scratch to understand the mechanics that frameworks like LiveKit Agents and Pipecat abstract away.
+
+### Voice pipeline
+
+Wake word (OpenWakeWord)
+→ Voice activity detection
+→ Whisper STT (GPU)
+→ Local LLM (Ollama, Qwen 2.5 3B)
+→ Neural TTS (Coqui VITS)
+
+### "Zoo" multi-agent layer (runs alongside the conversation)
+
+Utterance
+→ Listener agents (grammar, filler words, …) [parallel, typed signals]
+→ Orchestrator (prioritizes, decides when to coach)
+→ Coaching + memory agents
+
+**Stack:** Python · asyncio · FastAPI · Whisper · Ollama · Coqui TTS · OpenWakeWord · JSONL · systemd
+**Hardware:** Jetson Orin NX 16GB (ARM64) · Anker PowerConf S3
+**Status:** Operational, 24/7. Zoo coaching/memory and Qdrant RAG in active development.
+
+Constraints that shaped the design: models loaded once and held in RAM, an SSD write budget around 200 MB/day (audio in tmpfs, buffered logging), and thermal-aware power modes on passively cooled edge hardware.
+
+Full documentation index below.
 
 ---
 
@@ -67,36 +92,39 @@ This project includes comprehensive documentation based on production-tested pat
 ### For First-Time Setup
 
 **1. Read these (in order):**
-   - [ ] Project Specification (understand vision)
-   - [ ] CLAUDE.md (understand constraints)
-   - [ ] Git Deployment Workflow (understand process)
+
+- [ ] Project Specification (understand vision)
+- [ ] CLAUDE.md (understand constraints)
+- [ ] Git Deployment Workflow (understand process)
 
 **2. On Jetson (one-time):**
-   ```bash
-   # Setup SSH deploy key
-   ssh-keygen -t ed25519 -C "jetson-companion"
-   # Add public key to GitHub deploy keys
-   
-   # Clone repository
-   git clone git@github.com:<you>/english-companion-nx.git
-   cd english-companion-nx
-   
-   # Setup environment
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements-jetson.txt
-   
-   # Configure
-   cp .env.example .env
-   nano .env
-   chmod 600 .env
-   ```
+
+```bash
+# Setup SSH deploy key
+ssh-keygen -t ed25519 -C "jetson-companion"
+# Add public key to GitHub deploy keys
+
+# Clone repository
+git clone git@github.com:<you>/english-companion-nx.git
+cd english-companion-nx
+
+# Setup environment
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-jetson.txt
+
+# Configure
+cp .env.example .env
+nano .env
+chmod 600 .env
+```
 
 **3. Daily workflow:**
-   - Develop on dev machine
-   - Push to GitHub
-   - Pull on Jetson
-   - Restart service
+
+- Develop on dev machine
+- Push to GitHub
+- Pull on Jetson
+- Restart service
 
 ---
 
@@ -105,17 +133,20 @@ This project includes comprehensive documentation based on production-tested pat
 ### Architecture Philosophy
 
 **Simplicity First**
+
 - ❌ No PostgreSQL (JSONL is sufficient)
 - ❌ No Redis (no caching needed)
 - ❌ No Qdrant (no vector search initially)
 - ✅ Just Ollama + JSONL + systemd
 
 **Load Once, Run Forever**
+
 - Models loaded at startup
 - Keep in RAM indefinitely
 - Service restarts only when updating
 
 **Git as Source of Truth**
+
 - Develop on dev machine
 - Push to GitHub
 - Jetson pulls only (read-only)
@@ -124,6 +155,7 @@ This project includes comprehensive documentation based on production-tested pat
 ### Resource Management
 
 **Memory (16GB Total, 11GB Usable):**
+
 ```
 System:              3.0 GB
 Whisper Small:       1.0 GB
@@ -135,12 +167,14 @@ Safety margin:       2.5 GB
 ```
 
 **SSD Writes (200MB/day budget):**
+
 - Buffer conversation logs (5-min intervals)
 - Use tmpfs for audio temps (zero writes)
 - Log rotation with compression
 - Way under 50GB/day safety limit
 
 **Thermal Management:**
+
 - Monitor temps (70°C warning, 80°C critical)
 - Ensure active cooling
 - Adaptive power modes
@@ -150,29 +184,34 @@ Safety margin:       2.5 GB
 ## 📋 Project Phases
 
 ### Phase 1: Core Audio Pipeline ✅
+
 - [x] Audio capture (Anker PowerConf S3)
 - [x] Whisper transcription
 - [x] Basic TTS output
 - [x] Simple echo loop
 
 ### Phase 2: Conversation Engine ✅
+
 - [x] Wake word detection (OpenWakeWord)
 - [x] Ollama LLM integration
 - [x] Context management
 - [x] Buffered logging
 
 ### Phase 3: Topic Integration 🚧
+
 - [x] MCP client connection
 - [ ] Topic suggestions
 - [x] Conversation threading
 
 ### Phase 4: Learning Features 🚧
+
 - [x] Grammar correction (background)
 - [ ] Vocabulary tracking
 - [ ] Progress metrics
 - [ ] **RAG with Qdrant** (semantic memory)
 
 ### Phase 5: Polish & Advanced ⏳
+
 - [ ] Voice cloning option
 - [ ] Emotion detection
 - [ ] Multi-language support
@@ -294,6 +333,7 @@ systemctl --user stop english-companion-nx
 ### Prometheus/Grafana (Optional)
 
 If you add monitoring in Phase 4+:
+
 - Metrics: http://localhost:8001/metrics
 - Grafana: http://localhost:3000
 
@@ -304,6 +344,7 @@ If you add monitoring in Phase 4+:
 ### Best Practices
 
 ✅ **DO:**
+
 - Keep `.env` out of Git
 - Use SSH deploy keys (read-only)
 - Set file permissions (`chmod 600 .env`)
@@ -311,6 +352,7 @@ If you add monitoring in Phase 4+:
 - Keep system updated
 
 ❌ **DON'T:**
+
 - Commit API keys or passwords
 - Expose services to internet without auth
 - Use default passwords
@@ -366,6 +408,7 @@ If you add monitoring in Phase 4+:
 ### Current Status (June 2026)
 
 **✅ Operational**
+
 - [x] Full voice pipeline live: wake word → VAD → Whisper STT (GPU) → local LLM (Ollama) → neural TTS
 - [x] Running 24/7 as a systemd service
 - [x] Multi-agent "Zoo" layer: listener agents → orchestrator → coaching, emitting typed signals
@@ -373,10 +416,12 @@ If you add monitoring in Phase 4+:
 - [x] Git-based deploy workflow (dev → GitHub → Jetson, pull-only)
 
 **🚧 In Progress**
+
 - [ ] Expanding Zoo coaching and memory agents
 - [ ] Longitudinal progress metrics
 
 **📋 Next**
+
 - [ ] RAG with Qdrant for semantic long-term memory
 - [ ] Optional voice cloning, emotion detection
 
@@ -415,6 +460,7 @@ If you add monitoring in Phase 4+:
 ### Documentation Issues
 
 If you find:
+
 - Incorrect information
 - Missing details
 - Unclear instructions
@@ -427,11 +473,13 @@ Update the docs and commit!
 ## 🙏 Acknowledgments
 
 **Based on patterns from:**
+
 - Domain Radar NX (production deployment experience)
 - Jetson community best practices
 - Real-world embedded AI deployments
 
 **Technologies:**
+
 - NVIDIA Jetson Orin NX
 - Ollama running Qwen 2.5 3B-Instruct (LLM runtime)
 - OpenAI Whisper small (STT)
@@ -451,7 +499,7 @@ MIT
 **Ready to begin?**
 
 1. ✅ Read Project Specification
-2. ✅ Read CLAUDE.md  
+2. ✅ Read CLAUDE.md
 3. ✅ Setup Jetson (Git Deployment Workflow)
 4. ✅ Start Phase 1 development
 5. ✅ Deploy and test
@@ -469,13 +517,13 @@ MIT
 
 ## 📂 Document Index
 
-| Document | Purpose | When to Read |
-|----------|---------|--------------|
-| [Project Spec](./ai-english-companion-nx-project-spec.md) | Vision & requirements | Planning |
-| [CLAUDE.md](./CLAUDE.md) | Development guide | Before coding |
-| [Git Workflow](./git-deployment-workflow.md) | Deployment process | Before deploying |
-| [Jetson Guide](./jetson-orin-nx-deployment-guide.md) | General Jetson ops | Reference |
-| [Infrastructure](./infrastructure-comparison.md) | Architecture decisions | Understanding design |
-| [Peculiarities](./JETSON_PECULIARITIES.md) | Lessons learned | Troubleshooting |
+| Document                                                  | Purpose                | When to Read         |
+| --------------------------------------------------------- | ---------------------- | -------------------- |
+| [Project Spec](./ai-english-companion-nx-project-spec.md) | Vision & requirements  | Planning             |
+| [CLAUDE.md](./CLAUDE.md)                                  | Development guide      | Before coding        |
+| [Git Workflow](./git-deployment-workflow.md)              | Deployment process     | Before deploying     |
+| [Jetson Guide](./jetson-orin-nx-deployment-guide.md)      | General Jetson ops     | Reference            |
+| [Infrastructure](./infrastructure-comparison.md)          | Architecture decisions | Understanding design |
+| [Peculiarities](./JETSON_PECULIARITIES.md)                | Lessons learned        | Troubleshooting      |
 
 **Start with Project Spec → CLAUDE.md → Git Workflow** 📚
