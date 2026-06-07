@@ -250,9 +250,9 @@ audio_file = self.recorder.record_with_vad(
 
 **Test VAD separately:**
 ```bash
-python test_vad_recording.py           # Default: 0.01 threshold, 3.0s silence
-python test_vad_recording.py 0.02      # Less sensitive (noisy environment)
-python test_vad_recording.py 0.01 5.0  # Wait 5s of silence (very patient)
+python tests/test_vad_recording.py           # Default: 0.01 threshold, 3.0s silence
+python tests/test_vad_recording.py 0.02      # Less sensitive (noisy environment)
+python tests/test_vad_recording.py 0.01 5.0  # Wait 5s of silence (very patient)
 ```
 
 ### Audio Quality
@@ -274,7 +274,7 @@ python test_vad_recording.py 0.01 5.0  # Wait 5s of silence (very patient)
 
 ```bash
 # Test wake word detection separately
-python test_wake_word.py basic 30
+python tests/test_wake_word.py basic 30
 
 # Debug with real-time confidence scores
 python debug_wake_word.py 30 hey_jarvis 0
@@ -351,7 +351,7 @@ The voice assistant uses buffered logging and automatic cleanup:
 
 ```bash
 # Test wake word only
-python test_wake_word.py basic 30
+python tests/test_wake_word.py basic 30
 
 # Test conversation only (no wake word)
 python conversation_prototype.py

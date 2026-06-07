@@ -36,7 +36,7 @@ ollama list
 
 ```bash
 # Run comparison test
-python3 test_grammar_models.py
+python3 tests/test_grammar_models.py
 ```
 
 **This will:**
@@ -53,10 +53,10 @@ python3 test_grammar_models.py
 
 ```bash
 # Use default 3b model
-python3 test_zoo_interactive.py
+python3 tests/test_zoo_interactive.py
 
 # Use 8b model for better accuracy
-python3 test_zoo_interactive.py --grammar-model llama3.2:8b
+python3 tests/test_zoo_interactive.py --grammar-model llama3.2:8b
 ```
 
 ### In Your Code
@@ -199,10 +199,10 @@ config = {
 Before deploying 8B model:
 
 - [ ] Download model: `ollama pull llama3.2:8b`
-- [ ] Run comparison: `python3 test_grammar_models.py`
+- [ ] Run comparison: `python3 tests/test_grammar_models.py`
 - [ ] Check accuracy improvement
 - [ ] Monitor memory usage: `free -h`
-- [ ] Test interactive: `python3 test_zoo_interactive.py --grammar-model llama3.2:8b`
+- [ ] Test interactive: `python3 tests/test_zoo_interactive.py --grammar-model llama3.2:8b`
 - [ ] Verify speed is acceptable (~1-1.5s)
 - [ ] Ensure only one model loaded: `ollama ps`
 
@@ -282,7 +282,7 @@ Other models to consider:
 Test any model with:
 ```bash
 ollama pull <model-name>
-python3 test_zoo_interactive.py --grammar-model <model-name>
+python3 tests/test_zoo_interactive.py --grammar-model <model-name>
 ```
 
 ---

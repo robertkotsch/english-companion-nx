@@ -60,8 +60,8 @@ eclogs
 | Shortcut | Command | Description |
 |----------|---------|-------------|
 | `ecupdate` | `cd ~/apps/english-companion-nx && git pull` | Git pull latest changes |
-| `ectest` | `cd ~/apps/english-companion-nx && source .venv/bin/activate && python test_audio.py` | Test audio hardware |
-| `ecwake` | `cd ~/apps/english-companion-nx && source .venv/bin/activate && python test_wake_word.py basic 30` | Test wake word detection (30s) |
+| `ectest` | `cd ~/apps/english-companion-nx && source .venv/bin/activate && python tests/test_audio.py` | Test audio hardware |
+| `ecwake` | `cd ~/apps/english-companion-nx && source .venv/bin/activate && python tests/test_wake_word.py basic 30` | Test wake word detection (30s) |
 
 **Usage examples:**
 ```bash

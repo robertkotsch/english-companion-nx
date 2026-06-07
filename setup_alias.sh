@@ -35,8 +35,8 @@ alias ecstop='systemctl --user stop english-companion-nx'
 alias ecrestart='systemctl --user restart english-companion-nx'
 
 # Quick test commands
-alias ectest='cd ~/apps/english-companion-nx && source .venv/bin/activate && python test_audio.py'
-alias ecwake='cd ~/apps/english-companion-nx && source .venv/bin/activate && python test_wake_word.py basic 30'
+alias ectest='cd ~/apps/english-companion-nx && source .venv/bin/activate && python tests/test_audio.py'
+alias ecwake='cd ~/apps/english-companion-nx && source .venv/bin/activate && python tests/test_wake_word.py basic 30'
 
 # Monitor resources
 alias ecmem='free -h && echo "" && nvidia-smi'

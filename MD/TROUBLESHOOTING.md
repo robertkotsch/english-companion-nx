@@ -11,7 +11,7 @@ Complete troubleshooting guide for English Companion NX (Phase 2B).
 **Solution:**
 ```bash
 # Test wake word separately
-python test_wake_word.py basic 30
+python tests/test_wake_word.py basic 30
 
 # Debug with confidence scores
 python debug_wake_word.py 30 hey_jarvis 0
@@ -121,13 +121,13 @@ silence_threshold=0.02,  # Less sensitive to background noise
 
 ```bash
 # List audio devices
-python test_audio.py
+python tests/test_audio.py
 
 # Check device permissions
 ls -l /dev/snd/*
 
 # Test specific device
-python test_vad_recording.py --device 0
+python tests/test_vad_recording.py --device 0
 
 # Check PulseAudio
 pactl list sources short
@@ -217,7 +217,7 @@ torch.cuda.empty_cache()
 
 ```bash
 # Test in quiet environment
-python test_vad_recording.py
+python tests/test_vad_recording.py
 
 # Check language setting in config
 cat .env | grep WHISPER

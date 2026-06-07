@@ -133,10 +133,10 @@ Ollama models:    /usr/share/ollama/.ollama/models/
 
 ```bash
 # Test microphone + speaker
-python test_audio.py
+python tests/test_audio.py
 
 # Test specific audio device
-python test_audio.py --device 0
+python tests/test_audio.py --device 0
 
 # List available audio devices
 python -c "import pyaudio; p = pyaudio.PyAudio(); \
@@ -148,7 +148,7 @@ python -c "import pyaudio; p = pyaudio.PyAudio(); \
 
 ```bash
 # Test wake word detection (30 seconds)
-python test_wake_word.py basic 30
+python tests/test_wake_word.py basic 30
 
 # Debug wake word with confidence scores
 python debug_wake_word.py 30 hey_jarvis 0
@@ -161,10 +161,10 @@ python voice_assistant.py hey_jarvis alexa 0.3 0.5 0
 
 ```bash
 # Test VAD recording with silence detection
-python test_vad_recording.py
+python tests/test_vad_recording.py
 
 # Test with custom parameters
-python test_vad_recording.py --silence-threshold 0.02 --silence-duration 4.0
+python tests/test_vad_recording.py --silence-threshold 0.02 --silence-duration 4.0
 ```
 
 ### Speech Component Tests
