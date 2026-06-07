@@ -8,13 +8,13 @@ Test all Zoo listeners with your own custom utterances in real-time.
 
 ```bash
 # Basic usage
-python3 test_zoo_interactive.py
+python3 tests/test_zoo_interactive.py
 
 # Verbose mode (show DEBUG logs)
-python3 test_zoo_interactive.py --verbose
+python3 tests/test_zoo_interactive.py --verbose
 
 # Skip GrammarGiraffe (faster, no Ollama needed)
-python3 test_zoo_interactive.py --no-grammar
+python3 tests/test_zoo_interactive.py --no-grammar
 ```
 
 ---
@@ -209,10 +209,10 @@ Expected: 1 vocab word (facilitate)
 
 ```bash
 # Verbose mode - show DEBUG level logs
-python3 test_zoo_interactive.py --verbose
+python3 tests/test_zoo_interactive.py --verbose
 
 # Skip GrammarGiraffe - faster, no LLM needed
-python3 test_zoo_interactive.py --no-grammar
+python3 tests/test_zoo_interactive.py --no-grammar
 ```
 
 ---
@@ -241,7 +241,7 @@ ollama list
 
 # Run interactive test
 cd ~/apps/english-companion-nx
-python3 test_zoo_interactive.py
+python3 tests/test_zoo_interactive.py
 
 # Try your grammar error example:
 > What are the tools I am would using?
@@ -283,7 +283,7 @@ If GrammarGiraffe is slow (>1s per utterance):
 
 ```bash
 # Skip it for faster testing
-python3 test_zoo_interactive.py --no-grammar
+python3 tests/test_zoo_interactive.py --no-grammar
 ```
 
 ### Import Errors

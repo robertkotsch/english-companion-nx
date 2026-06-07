@@ -267,7 +267,7 @@ silence_threshold=0.01,  # Audio level below this = silence
 **To use different microphone:**
 ```bash
 # List available devices
-python test_audio.py
+python tests/test_audio.py
 
 # Use device 1 instead
 python voice_assistant.py hey_jarvis alexa 0.5 0.5 1
@@ -588,13 +588,13 @@ python voice_assistant.py
 
 ```bash
 # Test VAD settings
-python test_vad_recording.py
+python tests/test_vad_recording.py
 
 # Test wake word sensitivity
-python test_wake_word.py basic 30
+python tests/test_wake_word.py basic 30
 
 # Test audio devices
-python test_audio.py
+python tests/test_audio.py
 ```
 
 ### 8.3 Long-Term Testing

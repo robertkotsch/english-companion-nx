@@ -321,11 +321,11 @@ Run tests to verify listeners work:
 
 ```bash
 # Simple standalone tests (no venv needed)
-python3 test_zoo_listeners_simple.py
+python3 tests/test_zoo_listeners_simple.py
 
 # Full unittest suite (requires venv)
 source ~/apps/english-companion-nx/.venv/bin/activate
-python test_zoo_listeners.py
+python tests/test_zoo_listeners.py
 ```
 
 ---

@@ -58,9 +58,9 @@ python voice_assistant.py              # Main voice assistant (Phase 2B)
 python conversation_prototype.py       # Testing mode (Press Enter)
 
 # Testing
-python test_audio.py                   # Audio hardware
-python test_wake_word.py basic 30      # Wake word (30s)
-python test_vad_recording.py           # VAD recording
+python tests/test_audio.py                   # Audio hardware
+python tests/test_wake_word.py basic 30      # Wake word (30s)
+python tests/test_vad_recording.py           # VAD recording
 python debug_wake_word.py 30 hey_jarvis 0  # Debug wake word scores
 python -m pytest                       # Run all tests (when on dev machine)
 

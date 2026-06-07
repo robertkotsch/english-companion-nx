@@ -126,12 +126,12 @@ This project includes comprehensive documentation based on production-tested pat
 **Memory (16GB Total, 11GB Usable):**
 ```
 System:              3.0 GB
-Whisper Medium:      2.0 GB
-Llama 3.1 13B:       8.0 GB
-TTS:                 0.5 GB
+Whisper Small:       1.0 GB
+Qwen 2.5 3B-Instruct: 2.5 GB
+TTS (Coqui VITS):    0.5 GB
 Application:         1.0 GB
 Buffers:             0.5 GB
-Safety margin:       1.0 GB
+Safety margin:       2.5 GB
 ```
 
 **SSD Writes (200MB/day budget):**
@@ -156,7 +156,7 @@ Safety margin:       1.0 GB
 - [ ] Simple echo loop
 
 ### Phase 2: Conversation Engine ⏳
-- [ ] Wake word detection (Porcupine)
+- [ ] Wake word detection (OpenWakeWord)
 - [ ] Ollama LLM integration
 - [ ] Context management
 - [ ] Buffered logging
@@ -435,16 +435,16 @@ Update the docs and commit!
 
 **Technologies:**
 - NVIDIA Jetson Orin NX
-- Ollama (LLM runtime)
-- OpenAI Whisper (STT)
-- Coqui TTS (voice synthesis)
-- Picovoice Porcupine (wake word)
+- Ollama running Qwen 2.5 3B-Instruct (LLM runtime)
+- OpenAI Whisper small (STT)
+- Coqui TTS / VITS (voice synthesis)
+- OpenWakeWord (wake word)
 
 ---
 
 ## 📄 License
 
-[Your license here]
+MIT
 
 ---
 
