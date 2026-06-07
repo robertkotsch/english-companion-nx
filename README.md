@@ -149,25 +149,25 @@ Safety margin:       2.5 GB
 
 ## 📋 Project Phases
 
-### Phase 1: Core Audio Pipeline ⏳
-- [ ] Audio capture (Anker PowerConf S3)
-- [ ] Whisper transcription
-- [ ] Basic TTS output
-- [ ] Simple echo loop
+### Phase 1: Core Audio Pipeline ✅
+- [x] Audio capture (Anker PowerConf S3)
+- [x] Whisper transcription
+- [x] Basic TTS output
+- [x] Simple echo loop
 
-### Phase 2: Conversation Engine ⏳
-- [ ] Wake word detection (OpenWakeWord)
-- [ ] Ollama LLM integration
-- [ ] Context management
-- [ ] Buffered logging
+### Phase 2: Conversation Engine ✅
+- [x] Wake word detection (OpenWakeWord)
+- [x] Ollama LLM integration
+- [x] Context management
+- [x] Buffered logging
 
-### Phase 3: Topic Integration ⏳
-- [ ] MCP client connection
+### Phase 3: Topic Integration 🚧
+- [x] MCP client connection
 - [ ] Topic suggestions
-- [ ] Conversation threading
+- [x] Conversation threading
 
-### Phase 4: Learning Features ⏳
-- [ ] Grammar correction (background)
+### Phase 4: Learning Features 🚧
+- [x] Grammar correction (background)
 - [ ] Vocabulary tracking
 - [ ] Progress metrics
 - [ ] **RAG with Qdrant** (semantic memory)
@@ -363,24 +363,22 @@ If you add monitoring in Phase 4+:
 
 ## 📝 Changelog
 
-### Current Status (Oct 2025)
+### Current Status (June 2026)
 
-**✅ Completed:**
-- [x] Complete documentation suite
-- [x] Architecture designed
-- [x] Resource management patterns
-- [x] Deployment workflow defined
-- [x] Hardware selected
+**✅ Operational**
+- [x] Full voice pipeline live: wake word → VAD → Whisper STT (GPU) → local LLM (Ollama) → neural TTS
+- [x] Running 24/7 as a systemd service
+- [x] Multi-agent "Zoo" layer: listener agents → orchestrator → coaching, emitting typed signals
+- [x] Buffered JSONL logging, tmpfs audio temps, thermal-aware power modes
+- [x] Git-based deploy workflow (dev → GitHub → Jetson, pull-only)
 
-**🚧 In Progress:**
-- [ ] Phase 1 implementation
-- [ ] Core audio pipeline
-- [ ] Initial testing
+**🚧 In Progress**
+- [ ] Expanding Zoo coaching and memory agents
+- [ ] Longitudinal progress metrics
 
-**📋 Planned:**
-- [ ] Phases 2-5
-- [ ] Production deployment
-- [ ] Long-term optimization
+**📋 Next**
+- [ ] RAG with Qdrant for semantic long-term memory
+- [ ] Optional voice cloning, emotion detection
 
 ---
 
@@ -463,10 +461,9 @@ MIT
 
 ---
 
-**Last Updated:** October 27, 2025  
-**Project Status:** Planning & Design Phase  
-**Target Hardware:** Jetson Orin NX 16GB + Anker PowerConf S3  
-**Deployment Model:** Git-based (Dev → GitHub → Jetson)
+**Last Updated:** June 2026
+**Project Status:** Operational — running 24/7 as a systemd service on Jetson Orin NX
+**Deployment Model:** Git-based (Dev → GitHub → Jetson, pull-only)
 
 ---
 
